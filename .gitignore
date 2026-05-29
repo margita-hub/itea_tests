@@ -1,0 +1,13 @@
+.env
+#password and sensitive info
+allure-results/
+allure-report/
+allure-report.zip
+__pycache__/
+.pytest_cache/
+.DS_Store
+.idea/
+*.iml
+# PyCharm IDE configuration files
+*.pyc
+.venv/

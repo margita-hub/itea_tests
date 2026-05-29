@@ -1,0 +1,15 @@
+allure serve allure-results
+
+allure generate allure-results --clean -o allure-report
+
+allure open allure-report
+
+
+
+"allure: command not found": You need to install the Allure command-line tool.
+Mac (Homebrew): brew install allureWindows (Scoop): scoop install allure
+Manual: Download the binaries from Maven Central, unzip them, and add the bin folder to your system PATH.
+Blank Report / Loading Issues: Do not try to open the index.html file directly from your file explorer (e.g., double-clicking it).
+Browsers block the necessary AJAX calls for security reasons. You must use allure open or allure serve to view it correctly.
+
+ls / cd navigate to test directory
