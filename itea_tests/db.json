@@ -1,0 +1,8 @@
+{
+  "products": [
+    { "id": "1", "name": "Taiping Houkui", "category": "Green Tea", "price": 56 },
+    { "id": "2", "name": "Bai Mudan", "category": "White Tea", "price": 28 },
+    { "id": "3", "name": "Pu-erh Cha Gao", "category": "Pu-erh", "price": 26 }
+  ],
+  "cart": []
+}
