@@ -1,0 +1,13 @@
+    def click_element(self, locator: Locator):
+        self.safe_execute(locator.click, "click_element")
+
+Calls Playwright's built-in .click() function.
+Wraps it in safe_execute, which adds logging (like "Execution Action click_element...").
+If the click fails (incase the element is hidden), it automatically takes a screenshot for your Allure report.
+
+Why not define it in __init__ like self.login_icon?
+In your HomePage, you defined self.login_icon inside __init__:
+
+(Inheritance, super(), self, and the Page Object Model) is universal. It applies to almost every modern programming language and automation framework.
+
+The tools change (Playwright vs Selenium, Python vs Java), but the Architecture (Page Object Model, Inheritance, Locators) is exactly the same!

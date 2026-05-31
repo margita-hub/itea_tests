@@ -1,16 +1,16 @@
 import pytest
 from venv import logger
-
+from pages.wishlist_page import WishlistPage
 from config.config import URLEn, URLHe, URLRu, URLLogin
 from utils.validation import AppValidation
 from pages.cart_page import CartPage
 from pages.coffee_page import CoffeePage
 from pages.home_page import HomePage
 from pages.login_page import LoginPage
-#from pages.tea_page import TeaPage
 from utils.logger import log_message, LogLevel
 from pages.tea_page import TeaPage
 from pages.teawear_page import TeawarePage
+from utils.bug_reporter import BugReporter
 
 
 @pytest.fixture()
@@ -28,8 +28,8 @@ def setup_playwright(playwright, request):
 @pytest.fixture()
 def setup_home_page(setup_playwright):
     home_page = HomePage(setup_playwright)
-    home_page.navigate_to(URLLogin)
-    log_message(logger, "navigate to{URL}", LogLevel.INFO)
+    home_page.navigate_to(URLEn)
+    log_message(logger, f"navigate to{URLEn}", LogLevel.INFO)
     yield home_page
 
 
@@ -37,7 +37,7 @@ def setup_home_page(setup_playwright):
 def setup_load_page(setup_playwright):
     login_page = LoginPage(setup_playwright)
     login_page.navigate_to(URLLogin)
-    log_message(logger, "navigate to{URL}", LogLevel.INFO)
+    log_message(logger, f"navigate to{URLLogin}", LogLevel.INFO)
     yield login_page
 
 
@@ -50,7 +50,8 @@ def setup_all_page(setup_playwright):
         "teaware": TeawarePage(setup_playwright),
         "cart": CartPage(setup_playwright),
         "coffee": CoffeePage(setup_playwright),
-        "tea": TeaPage(setup_playwright)
+        "tea": TeaPage(setup_playwright),
+        "wishlist": WishlistPage(setup_playwright)
     }
 
 
@@ -60,7 +61,26 @@ def validation(setup_all_page):
     yield AppValidation(**setup_all_page)
 
 
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    # Execute all other hooks to obtain the report object
+    outcome = yield
+    rep = outcome.get_result()
 
+    if rep.when == "call" and rep.failed:
+        test_name = item.name
+
+        # Define clean_error_message safely
+        if call.excinfo:
+            clean_error_message = str(call.excinfo.value)
+        else:
+            clean_error_message = "Unknown error occurred"
+
+        #  Extract the docstring of the test as the "Steps"
+        test_docstring = item.obj.__doc__ or "No steps provided in test docstring."
+
+        # Call the BugReporter using the variables we just defined!
+        BugReporter.report_failed_test(test_name, clean_error_message, test_docstring)
 
 
 
