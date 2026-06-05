@@ -1,9 +1,6 @@
 import hashlib
 import os
-
 import requests
-
-from pages.home_page import REFERENCE_DIR, REFERENCE_HASH
 
 
 class ImageHashHelper:

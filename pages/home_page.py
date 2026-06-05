@@ -1,5 +1,6 @@
 
 from playwright.sync_api import Page
+from config.config import URL_EN
 from pages.base_page import BasePage
 from pages.locators import HomePageLocators
 import hashlib
@@ -13,6 +14,9 @@ class HomePage(BasePage):
         super().__init__(page)
         self.login_icon = self.page.locator(HomePageLocators.LOGIN_ICON)
         self.logo = self.page.locator(HomePageLocators.LOGO_IMAGE)
+
+    def load(self):
+        self.navigate_to(URL_EN)
 
     def click_login_icon(self):
         self.click_element(self.login_icon)
@@ -73,108 +77,57 @@ class HomePage(BasePage):
     def click_cart_icon_visible(self):
         self.click_element(self.page.locator(HomePageLocators.CART_ICON_VISIBLE))
 
-    def extract_price(self, price_text: str) -> float:
-        """Extracts the active price from a WooCommerce string."""
-        matches = re.findall(r'\d+\.?\d*', price_text)
-        if matches:
-            return float(matches[-1])
-        return 0.0
+
 
     def get_amount_left_for_free_shipping(self) -> float:
-        """Reads the header tracker and returns the exact math float."""
-
+        #takes the header tracker and returns the exact math float.
         # ADD .first SO PLAYWRIGHT DOESN'T CRASH IF IT FINDS MULTIPLE!
         tracker = self.page.locator('.oceanwp-woo-left-to-free').first
 
         if not tracker.is_visible():
             return 0.0  # If it's missing, we either hit the threshold or the UI is broken!
-
         text = tracker.inner_text()
         return self.extract_price(text)
 
+    def hover_tea_types_menu(self):
+        self.page.locator('text="Tea Types"').first.hover(force=True)
+        self.page.wait_for_timeout(800)   # wait for dropdown animation
+
+    def click_menu(self, locator_name: str):
+        locator_string = getattr(HomePageLocators, locator_name)
+        menu_link = self.page.locator(locator_string).first
+        assert menu_link.is_visible(), f"Menu link '{locator_name}' not visible in header"
+        menu_link.click()
 
 
+    def all_products_have_sale_badge(self) -> bool:
+        products = self.page.locator('li.product')
+        products.first.wait_for(state="visible", timeout=5000)
+        total = products.count()
+        assert total > 0, "No products found on Sale page"
+        for i in range(total):
+            if not products.nth(i).locator('.onsale').is_visible():
+                return False
+        return True
 
+    def all_product_titles_contain(self, keyword: str) -> bool:
+        titles = self.page.locator('li.title.desktop a')
+        titles.first.wait_for(state="visible", timeout=5000)
+        total = titles.count()
+        assert total > 0, "No product titles found on page"
+        for i in range(total):
+            if keyword.lower() not in titles.nth(i).inner_text().strip().lower():
+                return False
+        return True
 
+    def hover_tea_types_menu(self):
+        self.page.locator('text="Tea Types"').first.hover(force=True)
+        self.page.locator(HomePageLocators.MATCHA_MENU).first.wait_for(
+            state="visible", timeout=5000
+        )
 
-
-
-
-
-
-
-
-
-
-
-
-
-'''
-
-'"""
-home_page.py — represents the iTea home page.
-All locators and actions for this page live here.
-"""
-
-import hashlib
-import os
-import requests
-import urllib3
-
-from selenium.webdriver.common.by import By
-from pages.base_page import BasePage
-
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-REFERENCE_DIR  = "reference_images"
-REFERENCE_HASH = "reference_images/logo_hash.txt"
-
-
-
-#Locators ────────────────────────────────────────────────────────────
-
-class HomePageLocators:
-    LOGO_WRAPPER = (By.CSS_SELECTOR, '#site-logo-inner')
-    LOGO_IMG = (By.CSS_SELECTOR, '#site-logo-inner img')
-
-#Actions ─────────────────────────────────────────────────────────────
-
-class HomePage(BasePage):
-
-    def __init__(self, driver):
-        super().__init__(driver)
-
-    def get_logo_element(self):
-        return self.find_element(HomePageLocators.LOGO_WRAPPER)
-
-    def get_logo_img(self):
-        return self.find_element(HomePageLocators.LOGO_IMG)
-
-    def is_logo_visible(self) -> bool:
-        return self.is_element_visible(HomePageLocators.LOGO_WRAPPER)
-
-    def get_logo_alt(self) -> str:
-        return self.get_logo_img().get_attribute("alt")
-
-    def get_logo_src(self) -> str:
-        return self.get_logo_img().get_attribute("src")
-
-    def compute_logo_md5(self) -> str:
-        """Downloads the logo image and returns its MD5 fingerprint."""
-        src = self.get_logo_src()
-        response = requests.get(src, timeout=10, verify=False)  # verify=False skips SSL check
-        response.raise_for_status()
-        return hashlib.md5(response.content).hexdigest()
-
-    def save_reference_hash(self, hash_value: str):
-        os.makedirs(REFERENCE_DIR, exist_ok=True)
-        with open(REFERENCE_HASH, "w") as f:
-            f.write(hash_value)
-
-    def load_reference_hash(self) -> str:
-        with open(REFERENCE_HASH, "r") as f:
-            return f.read().strip()
-
-    def reference_hash_exists(self) -> bool:
-        return os.path.exists(REFERENCE_HASH)
-'''
+    def click_menu(self, locator_name: str):
+        locator_string = getattr(HomePageLocators, locator_name)
+        menu_link = self.page.locator(locator_string).first
+        assert menu_link.is_visible(), f"Menu link '{locator_name}' not visible in header"
+        menu_link.click()
