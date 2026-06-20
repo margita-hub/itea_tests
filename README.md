@@ -54,12 +54,14 @@ pytest -v
 ```bash
 pytest tests/test_login.py -v
 pytest tests/test_filtering_and_sorting.py -v
+
 ```
 
 **Generate and view Allure Report:**
 ```bash
 pytest --alluredir=allure-results
 allure serve allure-results
+
 ```
 
 ## 📁 Project Structure

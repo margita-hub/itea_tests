@@ -13,3 +13,70 @@ Blank Report / Loading Issues: Do not try to open the index.html file directly f
 Browsers block the necessary AJAX calls for security reasons. You must use allure open or allure serve to view it correctly.
 
 ls / cd navigate to test directory
+
+
+# ✅ Authentication & Login
+pytest tests/test_login.py -v
+
+# ✅ Navigation
+pytest tests/test_navigation.py -v
+
+# ✅ Filtering & Sorting
+pytest tests/test_filtering_and_sorting.py -v
+
+# ✅ E2E Workflows
+pytest tests/test_e2e_flows.py -v
+
+# ✅ Mathematical Validations
+pytest tests/test_math_validations.py -v
+
+# ✅ UI & Grids
+pytest tests/test_ui_grids.py -v
+
+# ✅ Home Page
+pytest tests/test_home_page.py -v
+
+# ✅ Tea Category
+pytest tests/test_tea_page.py -v
+
+# ✅ Teaware Category
+pytest tests/test_teawear.py -v
+
+# ✅ SELECT-OPTIONS PRODUCTS (NEW!)
+pytest tests/test_select_options_product.py -v
+# SIMPLE (start here)
+pytest tests/test_navigation.py -v
+pytest tests/test_home_page.py -v
+
+
+# Run auth + navigation
+pytest tests/test_login.py tests/test_navigation.py -v
+
+# Run all category tests (tea, teaware, coffee)
+pytest tests/test_tea_page.py tests/test_teawear.py tests/test_coffee_page.py -v
+
+# Run all NEW + existing
+pytest tests/test_select_options_product.py tests/test_e2e_flows.py -v
+
+
+# Run specific test only
+pytest tests/test_select_options_product.py::test_add_select_options_product_to_cart -v
+
+# Run with keyword (partial match)
+pytest tests/ -k "select_options" -v
+
+# Run with output
+pytest tests/test_login.py -v -s
+
+# Run with detailed errors
+pytest tests/test_filtering_and_sorting.py -v --tb=short
+
+
+# MEDIUM
+pytest tests/test_login.py -v
+pytest tests/test_tea_page.py -v
+
+# COMPLEX
+pytest tests/test_filtering_and_sorting.py -v
+pytest tests/test_math_validations.py -v
+pytest tests/test_select_options_product.py -v
