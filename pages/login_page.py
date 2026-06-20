@@ -3,6 +3,8 @@ from utils.logger import log_message, LogLevel, take_screenshot
 from pages.base_page import BasePage
 from pages.home_page import HomePage
 from playwright.sync_api import Page
+from config.config import LOGIN_URL
+
 
 
 class LoginPage(BasePage):
@@ -12,6 +14,11 @@ class LoginPage(BasePage):
         self.password_field = self.page.locator(LoginPageLocators.PASSWORD_FIELD)
         self.login_button = self.page.locator(LoginPageLocators.LOGIN_BUTTON)
         self.error_message = self.page.locator(LoginPageLocators.ERROR_MESSAGE) #//*[@id="customer_login"]/div[1]/form/p[3]/div[2]
+
+
+    def load(self):
+        self.navigate_to(LOGIN_URL)
+
 
     def get_error_message(self,expected_error_message):
         return self.error_message.locator(f"//div[contains(text(),'{expected_error_message}')]")

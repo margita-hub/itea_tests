@@ -32,8 +32,17 @@ class ShoppingService:
         print(f"--- Expected sale items: {expected_sale_count} ---")
 
         for i in range(total_products):
+            #product.scroll_into_view_if_needed()removing
             product = self.tea.get_product_at_index(i)
-            self.tea.scroll_product_into_view(product)
+
+            try:
+                product.scroll_into_view_if_needed()
+            except Exception:
+                # Products dropped out of DOM — re-scroll to recover
+                self.tea.re_scroll_to_recover_products(total_products)
+                product = self.tea.get_product_at_index(i)
+                product.scroll_into_view_if_needed()
+
 
             if not self.tea.has_sale_badge(product):
                 continue
@@ -48,9 +57,9 @@ class ShoppingService:
 
             if discount >= discount_threshold:
                 print(f"   --> >= {discount_threshold}%. Adding to CART.")
-                item_price              = self.tea.get_product_price(product)
+                item_price = self.tea.get_product_price(product)
                 total_cart_value_added += item_price
-                self.tea.add_item_to_cart_by_index(i)
+                self.tea.add_simple_product_by_index(i)
                 cart_items.append(title)
 
             else:

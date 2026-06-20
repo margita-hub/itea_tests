@@ -45,7 +45,8 @@ class TeaPageLocators:
     SINGLE_PRODUCT_WISHLIST_BTN = '.summary .yith-wcwl-add-to-wishlist-button'
     SORTING_DROPDOWN = 'select.orderby'
     PAGE_TITLE_H1 = 'h1.page-header-title'
-
+    SIMPLE_PRODUCT_ITEM = 'li.product:has(a.product_type_simple)'
+    SELECT_OPTIONS_PRODUCT_ITEM = 'li.product:has(a.product_type_variable, a.product_type_bundle)'
 
 class TeawarePageLocators:
     PAGE_TITLE = 'h1.page-header-title'

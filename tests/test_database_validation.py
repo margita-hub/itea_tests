@@ -8,10 +8,7 @@ class TestDatabaseValidation:
 
     @pytest.mark.parametrize("tea_data", EXPECTED_PRODUCTS)
     def test_verify_tea_prices_from_json(self, setup_all_page, tea_data):
-        """
-        Reads expected products from db.json and verifies they exist
-        on the live website with the correct price.
-        """
+        #Reads expected products from db.json and verifies they exist on the live website with the correct price
         tea_page = setup_all_page["tea"]
 
         expected_name = tea_data["name"]
@@ -23,7 +20,7 @@ class TestDatabaseValidation:
 
         # Scroll to the bottom to ensure lazy-loaded items appear in the DOM
         tea_page.scroll_to_load_all_products()
-        tea_page.page.wait_for_timeout(2000)  # Give CSS/DOM time to update
+        tea_page.page.locator("li.product").first.wait_for(state="visible")
 
         # Use filter to avoid Strict Mode Violation if multiple teas match
         product_card = tea_page.page.locator("li.product").filter(has_text=expected_name).first

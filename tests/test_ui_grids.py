@@ -8,7 +8,6 @@ class TestCategoryGrids:
         home_page = setup_all_page["home"]
         tea_page = setup_all_page["tea"]
 
-        home_page.load()
         home_page.click_tea_menu()
         tea_page.page.wait_for_load_state()
 
@@ -20,8 +19,8 @@ class TestCategoryGrids:
 
         # Scroll back to the top just to be safe
         tea_page.page.evaluate("window.scrollTo(0, 0)")
-        tea_page.page.wait_for_timeout(1000)
-        # ---------------------------------------------
+        tea_page.page.locator(TeaPageLocators.PRODUCT_ITEM).first.wait_for(state="visible")
+
 
         product_list = tea_page.page.locator(TeaPageLocators.PRODUCT_LIST)
         all_products = product_list.locator(TeaPageLocators.PRODUCT_ITEM)

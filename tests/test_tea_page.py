@@ -1,8 +1,5 @@
 import pytest
 from pages.tea_page import TeaPage
-#from pages.tea_page import TeaPageLocators
-
-import pytest
 
 
 class TestTeaPage:

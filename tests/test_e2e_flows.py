@@ -1,9 +1,7 @@
-
 from Services.shopping_service import ShoppingService
-from pages import cart_page
 from pages.cart_page import CartPage
 from pages.locators import TeaPageLocators
-from tests.test_math_validations import extract_price
+from utils.math_helpers import calculate_qty_for_free_shipping
 
 
 def test_add_multiple_items_to_cart(setup_all_page):
@@ -11,11 +9,14 @@ def test_add_multiple_items_to_cart(setup_all_page):
     tea_page = setup_all_page["tea"]
     cart_page = setup_all_page["cart"]
 
-    home_page.load()
     home_page.click_tea_menu()
     #tea_page.page.wait_for_timeout(2000)
     # Instead of wait_for_timeout(2000) after navigate_to or load()
     tea_page.page.wait_for_load_state("networkidle")
+
+    # Scroll down to ensure all teas (like the 3rd one) are loaded into the DOM
+    print("\n--- Scrolling to load all teas before adding to cart ---")
+    tea_page.scroll_to_load_all_products()
 
     initial_shipping_left = home_page.get_amount_left_for_free_shipping()
     print(f"\n--- Initial Free Shipping Target: ₪{initial_shipping_left} ---")
@@ -23,19 +24,19 @@ def test_add_multiple_items_to_cart(setup_all_page):
     expected_teas = []
     total_cart_value = 0.0
 
-    product_1 = tea_page.page.locator(TeaPageLocators.PRODUCT_ITEM).nth(0)
-    price_1 = tea_page.get_product_price(product_1)
-    tea_1 = tea_page.add_item_to_cart_by_index(0)
-    expected_teas.append(tea_1)
-    total_cart_value += price_1
-    print(f"Added {tea_1} for ₪{price_1}")
+    # loop through the indexes
+    indexes_to_add = [0, 2]
 
-    product_2 = tea_page.page.locator(TeaPageLocators.PRODUCT_ITEM).nth(2)
-    price_2 = tea_page.get_product_price(product_2)
-    tea_2 = tea_page.add_item_to_cart_by_index(2)
-    expected_teas.append(tea_2)
-    total_cart_value += price_2
-    print(f"Added {tea_2} for ₪{price_2}")
+    simple_products = tea_page.page.locator('li.product:has(a.product_type_simple)')
+
+    for index in indexes_to_add:
+        product = simple_products.nth(index)  # filter
+        price = tea_page.get_product_price(product)  # reads price from simple product
+        tea_name = tea_page.add_simple_product_by_index(index)  # adds same simple product
+
+        expected_teas.append(tea_name)
+        total_cart_value += price
+        print(f"Added {tea_name} for ₪{price}")
 
     current_count = home_page.get_cart_item_count()
     assert current_count == 2, f"UI BUG: Cart bubble says {current_count}, but we added 2 items!"
@@ -64,7 +65,6 @@ def test_smart_discount_shopping(setup_all_page):
     home = setup_all_page["home"]
     tea = setup_all_page["tea"]
 
-    home.load()
     tea.load()
     total = tea.scroll_to_load_all_products()
 
@@ -78,14 +78,13 @@ def test_smart_discount_shopping(setup_all_page):
     cart = setup_all_page["cart"]
     cart.load()
     for item in summary["cart_items"]:
-        assert item in cart.get_all_item_names()
+        assert item in cart.get_cart_item_names()
 
     wishlist = setup_all_page["wishlist"]
     wishlist.load()
     for item in summary["wishlist_items"]:
-        assert item in wishlist.get_all_product_names()
-        home.load(CartPage)
-        cart_page.load()
+        assert item in wishlist.get_wishlist_item_names()
+
 
 
 def test_free_shipping_threshold_reached(setup_all_page):
@@ -94,52 +93,70 @@ def test_free_shipping_threshold_reached(setup_all_page):
     cart_page = setup_all_page["cart"]
 
     tea_page.load()
-    tea_page.page.wait_for_timeout(2000)
+    tea_page.page.locator(TeaPageLocators.PRODUCT_ITEM).first.wait_for(state="visible")
 
-    # Should be ₪200
+    # Get unit price BEFORE adding to cart
+    first_simple = tea_page.page.locator('li.product:has(a.product_type_simple)').first
+    item_price = tea_page.extract_price(first_simple.locator('.price').inner_text())
+    print(f"Unit price: ₪{item_price}")
+
     initial_shipping_left = home_page.get_amount_left_for_free_shipping()
     print(f"--- Initial Free Shipping Target: ₪{initial_shipping_left} ---")
 
-    # Add the first item to the cart
-    product_1 = tea_page.page.locator(TeaPageLocators.PRODUCT_ITEM).nth(0)
-    tea_1 = tea_page.add_item_to_cart_by_index(0)
+    # Add the first with button "add item" item to the cart
+    tea_1 = tea_page.add_simple_product_by_index(0)
 
     cart_page.load()
-    cart_page.page.wait_for_timeout(2000)
+    cart_page.page.locator('a.remove').first.wait_for(state="visible")
 
-    # 4. Change the quantity of the item to 10 (guaranteed to be > ₪200)
-    print(f"🛒 Increasing quantity of {tea_1} to 10...")
+    # Now calculate using actual unit price
+    qty_needed = calculate_qty_for_free_shipping(item_price)
+    print(f"₪{item_price} per item — need qty {qty_needed} to exceed ₪200")
+
     qty_input = cart_page.page.locator('input.qty').first
-    qty_input.fill("10")
+    qty_input.fill(str(qty_needed))
     qty_input.press("Enter")
 
     # Wait for the WooCommerce AJAX cart update to finish loading
     # ADD .first HERE TOO!
     cart_page.page.locator('.blockUI.blockOverlay').first.wait_for(state="hidden", timeout=10000)
 
-    cart_page.page.wait_for_timeout(1500)  # Give CSS time to re-render
+    # Tracker only updates on page reload — force it
+    cart_page.page.reload()
+    cart_page.page.wait_for_load_state("networkidle")
 
-    # 5. Check what happens to the Free Shipping tracker!
+    # Define tracker AFTER reload so it reads fresh value
     tracker = home_page.page.locator('.oceanwp-woo-left-to-free').first
 
+    # Debug prints
+    print(f"qty_needed: {qty_needed}")
+    print(f"cart total after qty change: {cart_page.get_cart_total()}")
+    if tracker.is_visible():
+        print(f"tracker text after qty change: '{tracker.inner_text()}'")
+    else:
+        print("Tracker disappeared — free shipping reached! ")
+
+    # Check what happens to the Free Shipping tracker
+    #tracker = home_page.page.locator('.oceanwp-woo-left-to-free').first
+
     # When free shipping is reached, the UI usually changes state entirely.
-    # It either disappears, or the text changes to "You have Free Shipping!"
+    # It disappears, or the text changes to "You have Free Shipping!"
 
     if tracker.is_visible():
         final_text = tracker.inner_text().lower()
-        print(f"--- Tracker changed to: '{final_text}' ---")
+        print(f"Tracker text: '{final_text}'")
+        print(f"Price in tracker: {home_page.extract_price(final_text)}")
 
-        # Verify it no longer asks for money!
-        assert "₪" not in final_text or extract_price(final_text) == 0.0, (
+        assert "₪" not in final_text or home_page.extract_price(final_text) == 0.0, (
             "UI BUG! The cart is over ₪200, but the tracker is still asking for money!"
         )
         assert "free" in final_text or "congratulations" in final_text, (
             "UI BUG! The free shipping success message did not appear!"
         )
     else:
-        print(" Tracker disappeared completely (Expected behavior for Free Shipping!)")
+        print("Tracker disappeared — free shipping reached!")
 
-    # 6. Verify Free Shipping is actually an option in the Cart Totals table!
+    # Verify Free Shipping is actually an option in the Cart Totals table!
     shipping_options = cart_page.page.locator('#shipping_method').inner_text().lower()
 
     # We must check for "free" in the context of the delivery methods!
@@ -153,18 +170,18 @@ def test_empty_cart_behavior(setup_all_page):
     tea_page = setup_all_page["tea"]
     cart_page = setup_all_page["cart"]
 
-    # 1. Add an item to the cart first
+    # Add an item to the cart first
     tea_page.load()
-    tea_page.page.wait_for_timeout(2000)
+    tea_page.page.locator(TeaPageLocators.PRODUCT_ITEM).first.wait_for(state="visible")
 
-    tea_page.add_item_to_cart_by_index(0)
-    tea_page.page.wait_for_timeout(1000)
+    tea_page.add_simple_product_by_index(0)
+    tea_page.page.locator(TeaPageLocators.PRODUCT_ITEM).first.wait_for(state="visible")
 
-    # 2. Go to the cart
-    cart_page.page.load()
-    cart_page.page.wait_for_timeout(2000)
+    # Go to the cart
+    cart_page.load()
+    cart_page.page.locator('a.remove').first.wait_for(state="visible")
 
-    # 3. Click the "Remove" button (Usually a red 'X' in WooCommerce)
+    # Click the "Remove" button (Usually a red 'X' in WooCommerce)
     remove_btn = cart_page.page.locator('a.remove').first
     assert remove_btn.is_visible(), "UI BUG: Could not find the remove (X) button!"
 
@@ -174,24 +191,24 @@ def test_empty_cart_behavior(setup_all_page):
     # Wait for the WooCommerce AJAX cart update to finish loading
     # (Use .first because WooCommerce spawns multiple spinners!)
     cart_page.page.locator('.blockUI.blockOverlay').first.wait_for(state="hidden", timeout=10000)
+    # After AJAX overlay disappears
+    cart_page.page.locator('.cart-empty').wait_for(state="visible")
 
-    cart_page.page.wait_for_timeout(1000)
-
-    # 4. Verify Empty Cart Message
+    # Verify Empty Cart Message
     empty_message = cart_page.page.locator('.cart-empty').inner_text().lower()
     assert "empty" in empty_message, f"UI BUG: Expected empty message, got: '{empty_message}'"
     print(" Empty cart message displayed successfully!")
 
-    # 5. Verify the "Return to shop" button exists
+    # Verify the "Return to shop" button exists
     return_to_shop_btn = cart_page.page.locator('.return-to-shop a.button')
     assert return_to_shop_btn.is_visible(), "UI BUG: 'Return to shop' button is missing!"
 
-    # 6. Verify the Bubble count in the header is exactly '0'
+    # Verify the Bubble count in the header is exactly '0'
     bubble_count = home_page.get_cart_item_count()
     assert bubble_count == 0, f"UI BUG: Cart is empty but bubble says {bubble_count}!"
     print(" Header bubble count is 0!")
 
-    # 7. Verify the Free Shipping tracker resets back to 200!
+    # Verify the Free Shipping tracker resets back to 200
     shipping_left = home_page.get_amount_left_for_free_shipping()
     assert round(shipping_left, 2) == 200.00, f"MATH BUG: Expected tracker to reset to 200, but it is {shipping_left}"
     print(" Free Shipping tracker successfully reset to 200!")

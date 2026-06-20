@@ -1,11 +1,16 @@
 from playwright.sync_api import Page
 from pages.base_page import BasePage
 from pages.locators import TeawarePageLocators
+from config.config import TEAWARE_URL
+
 
 
 class TeawarePage(BasePage):
     def __init__(self, page: Page):
         super().__init__(page)
+
+    def load(self):
+        self.navigate_to(TEAWARE_URL)
 
     def is_page_loaded(self) -> bool:
         # Locate the page title

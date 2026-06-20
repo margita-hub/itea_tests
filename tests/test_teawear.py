@@ -4,8 +4,7 @@ from pages.locators import TeaPageLocators
 
 class TestTeawarePage:
 
-    def load(self):
-        self.navigate_to(TEAWARE_URL)
+
 
     def test_teaware_page_loads_correctly(self, setup_all_page):
         teaware_page = setup_all_page["teaware"]

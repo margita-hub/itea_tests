@@ -11,9 +11,8 @@ class TestCategoryNavigation:
         pytest.param("MATCHA_MENU",  "Matcha",  id="MATCHA_MENU-Matcha"),
     ])
     def test_navigate_to_categories(self, setup_all_page, menu_locator_name, expected_h1_title):
-        """Click each header category and verify it lands on the right page."""
+        #Click each header category and verify it lands on the right page.
         home_page = setup_all_page["home"]
-        home_page.load()
         home_page.page.wait_for_load_state("domcontentloaded")
 
         if menu_locator_name == "MATCHA_MENU":
@@ -38,3 +37,30 @@ class TestCategoryNavigation:
             heading = home_page.get_page_heading()
             assert expected_h1_title.lower() in heading, \
                 f"Navigation bug — expected '{expected_h1_title}', got '{heading}'"
+
+
+
+    def test_submenu_item_hover_color_changes(self,setup_all_page):
+        home_page = setup_all_page["home"]
+        home_page.hover_tea_types_menu()
+        home_page.page.wait_for_load_state("domcontentloaded")
+
+        menu_items = ["Choose tea", "Flavors", "Feelings", "Activities", "Time for Tea", "Tea & Health"]
+
+        for item in menu_items:
+            #print(f"\n--- Testing: {item}---")
+
+            #is_highlighted = home_page.is_submenu_item_highlighted(item)
+            #bg_color = home_page.get_submenu_item_bg_color(item)
+
+            #print(f"Item: {item}")
+            #print(f"Highlighted: {is_highlighted}")
+            #print(f"Background color: {bg_color}")
+
+            #assert is_highlighted, f"Item '{item}' NOT highlighted. Color: {bg_color}"
+
+            assert home_page.is_submenu_item_highlighted(item), \
+                f"'{item}' should highlight on hover"
+
+        print(f"All {len(menu_items)} menu items highlight correctly")
+

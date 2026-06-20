@@ -1,6 +1,9 @@
 import logging
 import pytest
 import time
+import threading
+import sys
+import os
 from pathlib import Path
 from utils.logger import log_message, take_screenshot, LogLevel
 from config.config import URL_EN, LOGIN_URL
@@ -12,6 +15,7 @@ from pages.tea_page import TeaPage
 from pages.teawear_page import TeawarePage
 from pages.wishlist_page import WishlistPage
 from utils.bug_reporter import BugReporter
+from pages.product_page import ProductPage
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +78,8 @@ def setup_all_page(setup_playwright):
     home = HomePage(setup_playwright)
     home.load()
     log_message(logger, f"Navigated to {URL_EN}", LogLevel.INFO)
+    home.close_cart_bounce_popup()
+
     return {
         "page":     setup_playwright,
         "home":     home,
@@ -83,6 +89,7 @@ def setup_all_page(setup_playwright):
         "cart":     CartPage(setup_playwright),
         "coffee":   CoffeePage(setup_playwright),
         "wishlist": WishlistPage(setup_playwright),
+        "product": ProductPage(setup_playwright),
     }
 
 
@@ -106,12 +113,12 @@ def pytest_runtest_makereport(item, call):
     outcome = yield
     rep = outcome.get_result()
 
-    setattr(item, f"rep_{rep.when}", rep)       # needed by setup_playwright for tracing
+    setattr(item, f"rep_{rep.when}", rep)
 
-    if rep.when == "call" and rep.failed:     #if test failed
+    # Failure log + screenshot only
+    if rep.when == "call" and rep.failed:
         test_name = item.name
         clean_error_message = str(call.excinfo.value) if call.excinfo else "Unknown error"
-        test_docstring = item.obj.__doc__ or "No steps provided."
 
         log_message(logger, f"TEST FAILED: {test_name} -> {clean_error_message}", LogLevel.ERROR)
 
@@ -119,4 +126,85 @@ def pytest_runtest_makereport(item, call):
         if page is not None:
             take_screenshot(page, f"FAILURE_{test_name}")
 
-        BugReporter.report_failed_test(test_name, clean_error_message, test_docstring)
+    # trace zip exists now, safe to email
+    if rep.when == "teardown":
+        call_rep = getattr(item, "rep_call", None)
+        if call_rep and call_rep.failed:
+            test_name           = item.name
+            clean_error_message = str(call_rep.longrepr) if call_rep.longrepr else "Unknown error"
+            test_docstring      = item.obj.__doc__ or "No steps provided."
+            trace_path          = getattr(item, "_trace_path", None)
+
+            BugReporter.report_failed_test(test_name, clean_error_message, test_docstring, trace_path)
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--no-sleep-prevention",
+        action="store_true",
+        default=False,
+        help="Disable sleep prevention during tests (useful for CI/CD)"
+    )
+    parser.addoption(
+        "--headless",
+        action="store",
+        default="false",
+        help="Run browser headless: true or false",
+    )
+    # parser.addoption(
+    #     "--headed",
+    #     action="store_true",
+    #     default=False,
+    #     help="Run browser in headless mode"
+    # )
+    # parser.addoption(
+    #     "--alluredir",
+    #     action="store",
+    #     default="./allure-results",
+    #     help="Directory for Allure reports"
+    # )
+    # parser.addoption(
+    #     "--screenshot",
+    #     action="store",
+    #     default="only-on-failure",
+    #     help="Screenshot mode (only-on-failure or always)"
+    # )
+    # parser.addoption(
+    #     "--video",
+    #     action="store",
+    #     default="retain-on-failure",
+    #     help="Video mode (retain-on-failure or always)"
+    # )
+
+def prevent_sleep():
+    #Cross-platform: Keep PC awake during tests
+    try:
+        if sys.platform == "darwin":  # Mac
+            import subprocess
+            subprocess.Popen(["caffeinate", "-i", "-w", str(os.getpid())])
+            print("Mac: Using caffeinate")
+
+        elif sys.platform == "win32":  # Windows
+            import ctypes
+            ES_CONTINUOUS = 0x80000000
+            ES_SYSTEM_REQUIRED = 0x00000001
+            ctypes.windll.kernel32.SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED)
+            print("Windows: Preventing sleep mode")
+
+        else:  # Linux
+            import subprocess
+            subprocess.Popen(["xdotool", "getactivewindow"])
+            print("Linux: Using xdotool")
+    except Exception as e:
+        print(f"Could not enable keep-awake: {e}")
+
+
+def pytest_configure(config):
+    #Called at start of pytest session
+    if not config.getoption("--no-sleep-prevention"):
+        sleep_thread = threading.Thread(target=prevent_sleep, daemon=True)
+        sleep_thread.start()
+        print("Sleep prevention enabled")
+
+
+

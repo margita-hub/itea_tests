@@ -12,29 +12,31 @@ class TestFilteringAndSorting:
         pytest.param("Choose tea", "Tea & Health", "digestive health", "digestive-health", "digestive health", id="Health-digestive"),
     ])
     def test_advanced_dropdown_navigation(self, setup_all_page, top_menu, sub_menu, item, expected_url, expected_h1):
-        """Test the multi-level hover menus dynamically for any combination!"""
+        #Test the multi-level hover menus dynamically for any combination
         home_page = setup_all_page["home"]
         page = home_page.page
         
         home_page.navigate_to("https://itea.co.il/en/")
         page.wait_for_load_state("domcontentloaded")
         
-        # 1. Hover over Top Menu
+        # Hover over Top Menu
         try:
             page.locator(f'text="{top_menu}"').first.hover(force=True, timeout=2000)
             page.wait_for_timeout(500)
-            
-            # 2. Hover over Sub Menu
+
+            # Hover over Sub Menu
             page.locator(f'text="{sub_menu}"').first.hover(force=True, timeout=2000)
             page.wait_for_timeout(500)
-        except:
-            pass # If hover fails due to flakiness, we will force click via evaluate below anyway
-        
-        # 3. Click the target item using force=True to bypass any animation overlaps
+
+        except Exception as e:
+            print(f"Hover skipped ({top_menu} → {sub_menu}): {e}")
+            # force click below will still handle it
+
+        # Click the target item using force=True to bypass any animation overlaps
         page.locator(f'text="{item}"').first.click(force=True)
         page.wait_for_load_state("domcontentloaded")
         
-        # 4. Verify URL and H1 title dynamically
+        # Verify URL and H1 title dynamically
         assert expected_url in page.url, f"Navigation bug! Expected URL to contain '{expected_url}'"
         
         h1_element = page.locator(TeaPageLocators.PAGE_TITLE_H1).first

@@ -24,10 +24,6 @@ def log_message(logger, message: str, level: LogLevel, attach_to_allure: bool = 
         logger.critical(message)
     elif level == LogLevel.DEBUG:
         logger.debug(message)
-    elif level == LogLevel.INFO:
-        logger.info(message)
-    elif level == LogLevel.WARNING:
-        logger.warning(message)
 
     if attach_to_allure:
         allure.attach(

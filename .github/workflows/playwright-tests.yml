@@ -2,23 +2,38 @@ name: Playwright Automation Tests
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, develop ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, develop ]
+  schedule:
+    - cron: '0 2 * * *'
 
 jobs:
   test:
-    timeout-minutes: 60
+    timeout-minutes: 120
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+      fail-fast: false
 
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5   # <-- FIXED: Now it uses the correct action
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
 
     - name: Install Dependencies
       run: |
@@ -26,18 +41,50 @@ jobs:
         pip install -r requirements.txt
 
     - name: Install Playwright Browsers
-      run: playwright install --with-deps
+      run: playwright install --with-deps chromium
+
+    - name: Create .env file
+      run: |
+        echo "BASE_URL=https://itea.co.il/en/" > .env
+        echo "HEADLESS=true" >> .env
 
     - name: Run Playwright Tests
-      run: pytest
+      run: pytest tests/ --no-sleep-prevention -v --tb=short
+      continue-on-error: false
+      timeout-minutes: 90
 
-    - name: Upload Test Report
+    - name: Generate Allure Report
+      if: always()
+      run: |
+        pip install allure-pytest
+        allure generate allure-results --clean -o allure-report
+
+    - name: Upload Playwright Report
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: playwright-report
+        name: playwright-report-py${{ matrix.python-version }}
         path: playwright-report/
         retention-days: 30
 
+    - name: Upload Allure Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: allure-report-py${{ matrix.python-version }}
+        path: allure-report/
+        retention-days: 30
 
+    - name: Upload Bug Reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: bug-reports-py${{ matrix.python-version }}
+        path: bug_reports/
+        retention-days: 30
 
+    - name: Test Summary
+      if: always()
+      run: |
+        echo " Tests completed"
+        echo " Check artifacts for detailed reports"

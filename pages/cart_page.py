@@ -30,7 +30,7 @@ class CartPage(BasePage):
         return self.page.locator("td.product-name a").all_inner_texts()
 
     def get_cart_total(self) -> float:
-        total = self.page.locator("tr.order-total .woocommerce-Price-amount")
+        total = self.page.locator("tr.order-total td > strong .woocommerce-Price-amount").first
         total.wait_for(timeout=5000)
         return self.extract_price(total.inner_text())
 
@@ -40,3 +40,17 @@ class CartPage(BasePage):
     def is_cart_totals_visible(self) -> bool:
         return self.page.get_by_role("heading", name="Cart totals").is_visible()
 
+    def update_item_quantity(self, item_index: int, quantity: int):
+
+        qty_inputs = self.page.locator('input[name="quantity"]')
+        qty_input = qty_inputs.nth(item_index)
+        qty_input.wait_for(state="visible", timeout=5000)
+        qty_input.fill(str(quantity))
+
+        self.page.wait_for_load_state("networkidle")
+
+    def get_item_subtotal(self, item_index: int) -> float:
+        subtotals = self.page.locator('td.product-subtotal .woocommerce-Price-amount')
+        subtotal = subtotals.nth(item_index)
+        subtotal.wait_for(timeout=5000)
+        return self.extract_price(subtotal.inner_text())

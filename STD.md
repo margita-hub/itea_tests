@@ -1,7 +1,7 @@
 # Software Test Description (STD)
 **Project**: iTea E-Commerce Automation Framework
 **Author**: Margita Muratova
-**Date**: May 2026
+**Date**: May/June 2026
 
 ---
 
@@ -36,7 +36,6 @@ Utilizing Pytest hooks (`conftest.py`), the framework intercepts test failures. 
 
 ---
 
-## 4. Test Scenarios (Current Coverage: 32 Tests)
 
 ### TS-01: Authentication & Login (`test_login.py`)
 - **Objective**: Verify secure access to the platform.
@@ -88,6 +87,5 @@ To complete the framework, the following areas will be automated:
 ## 6. Execution Instructions
 Run the entire suite securely:
 `NODE_TLS_REJECT_UNAUTHORIZED=0 pytest -v --alluredir=allure-results`
-
 ---
 *End of Document*

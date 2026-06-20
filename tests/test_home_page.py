@@ -5,9 +5,9 @@ from utils.logger import log_message, LogLevel
 
 logger = logging.getLogger(__name__)
 
-# ── Test 1: Logo existence ──────────────────────────────────────────────
+
 def test_logo_is_displayed(setup_home_page):
-    """Verify the iTea logo exists and is visible."""
+    #Verify the iTea logo exists and is visible
     home_page = setup_home_page
     
     assert home_page.is_logo_visible(), "Logo is NOT visible on the home page"
@@ -20,12 +20,9 @@ def test_logo_is_displayed(setup_home_page):
     
     log_message(logger, f"Logo OK | alt='{alt}' | src='{src}'", LogLevel.INFO)
 
-# ── Test 2: Logo image — MD5 hash comparison ────────────────────────────
+
 def test_logo_image_hash(setup_home_page):
-    """
-    Verifies the logo image file has not changed.
-    First run saves the reference. Every run after compares against it.
-    """
+    # Verifies the logo image file has not changed.First run saves the reference. Every run after compares against it.
     home_page = setup_home_page
     current_hash = home_page.compute_logo_md5()
     log_message(logger, f"Current MD5: {current_hash}", LogLevel.INFO)

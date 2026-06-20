@@ -79,4 +79,50 @@ pytest tests/test_tea_page.py -v
 # COMPLEX
 pytest tests/test_filtering_and_sorting.py -v
 pytest tests/test_math_validations.py -v
+# Local development (keeps awake)
 pytest tests/test_select_options_product.py -v
+
+# CI/CD (doesn't interfere)
+pytest tests/test_select_options_product.py --no-sleep-prevention -v
+
+
+# Run ALL tests
+pytest tests/
+
+# Run ONE test file
+pytest tests/test_navigation.py
+
+# Run ONE specific test
+pytest tests/test_navigation.py::TestCategoryNavigation::test_submenu_item_hover_color_changes
+
+# Run tests matching a name
+pytest tests/ -k "navigation"
+
+
+# Verbose output (show each test)
+pytest tests/ -v
+
+# Very verbose (show details)
+pytest tests/ -vv
+
+# Show print statements
+pytest tests/ -s
+
+# Quiet (only summary)
+pytest tests/ -q
+
+# Stop after first failure
+pytest tests/ -x
+
+# Stop after 3 failures
+pytest tests/ --maxfail=3
+
+
+# Verbose + show prints + stop on first failure
+pytest tests/ -v -s -x
+
+# Everything + short traceback
+pytest tests/ -v -s --tb=short
+
+# Just see what passes/fails
+pytest tests/ -v --tb=line
