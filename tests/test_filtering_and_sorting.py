@@ -5,11 +5,11 @@ from pages.locators import TeaPageLocators
 class TestFilteringAndSorting:
 
     @pytest.mark.parametrize("top_menu, sub_menu, item, expected_url, expected_h1", [
-        ("Choose tea", "Feelings", "relaxation", "teas-for-emotional-wellness-and-relaxation", "emotional wellness and relaxation"),
-        ("Choose tea", "Feelings", "energy boost", "energy-booster", "energy levels"),
-        ("Choose tea", "Flavors", "fruity", "fruity", "fruity"),
-        ("Choose tea", "Time for Tea", "afternoon & evening tea", "time/evening", "evening"),
-        ("Choose tea", "Tea & Health", "digestive health", "digestive-health", "digestive health")
+        pytest.param("Choose tea", "Feelings",  "relaxation", "teas-for-emotional-wellness-and-relaxation", "emotional wellness and relaxation", id="Feelings-relaxation"),
+        pytest.param("Choose tea", "Feelings", "energy boost", "energy-booster", "energy levels", id="Feelings-energy-boost"),
+        pytest.param("Choose tea", "Flavors", "fruity", "fruity", "fruity", id="Flavors-fruity"),
+        pytest.param("Choose tea", "Time for Tea", "afternoon & evening tea", "time/evening", "evening", id="Time-evening"),
+        pytest.param("Choose tea", "Tea & Health", "digestive health", "digestive-health", "digestive health", id="Health-digestive"),
     ])
     def test_advanced_dropdown_navigation(self, setup_all_page, top_menu, sub_menu, item, expected_url, expected_h1):
         """Test the multi-level hover menus dynamically for any combination!"""

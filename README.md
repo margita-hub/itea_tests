@@ -65,21 +65,54 @@ allure serve allure-results
 ## 📁 Project Structure
 ```text
 itea_tests/
-├── pages/                  # Page Object Model classes
-│   ├── locators.py         # Centralized CSS/XPath selectors
+├── pages/                      # Page Object Model classes
+│   ├── locators.py             # Centralized CSS/XPath selectors
+│   ├── base_page.py            # Parent class — shared methods for all pages
 │   ├── home_page.py
 │   ├── tea_page.py
-│   └── ...
-├── tests/                  # Pytest test suites
+│   ├── cart_page.py
+│   ├── wishlist_page.py
+│   ├── login_page.py
+│   ├── teawear_page.py
+│   └── coffee_page.py
+├── tests/                      # Pytest test suites
 │   ├── test_e2e_flows.py
 │   ├── test_filtering_and_sorting.py
 │   ├── test_home_page.py
 │   ├── test_login.py
 │   ├── test_math_validations.py
-│   └── test_navigation.py
-├── utils/                  # Helper utilities
-│   ├── bug_reporter.py     # Jira-style ticket generation
-│   └── send_email.py       # SMTP integrations
-├── bug_reports/            # Auto-generated txt files on failure
-└── pytest.ini              # Pytest configuration
+│   ├── test_navigation.py
+│   ├── test_tea_page.py
+│   ├── test_teawear.py
+│   └── test_ui_grids.py
+├── Services/                   # Business logic layer
+│   └── shopping_service.py     # Smart discount shopping loop
+├── config/
+│   └── config.py               # All URLs and settings
+├── utils/                      # Helper utilities
+│   ├── bug_reporter.py         # Jira-style ticket generation
+│   ├── send_email.py           # SMTP email alerts
+│   ├── logger.py               # Logging setup
+│   └── validation.py           # App validation helpers
+├── bug_reports/                # Auto-generated .txt files on failure
+├── reference_images/           # Saved logo hash for comparison
+├── allure-results/             # Generated at runtime — do not commit
+├── conftest.py                 # Fixtures — browser setup and page objects
+├── pytest.ini                  # Pytest configuration
+├── requirements.txt            # Python dependencies
+├── .env                        # Credentials — never commit
+└── .env.example                # Credentials template
 ```
+
+## Email alerts setup
+
+When a test fails, an email alert is sent automatically.
+
+1. Copy `.env.example` to `.env`
+2. Fill in your Gmail credentials:
+   - `EMAIL_FROM` — Gmail address to send from
+   - `EMAIL_PASSWORD` — Gmail App Password (not your real password)
+   - `EMAIL_TO` — one or more recipients, comma-separated
+
+> To generate a Gmail App Password:
+> Google Account → Security → 2-Step Verification → App Passwords

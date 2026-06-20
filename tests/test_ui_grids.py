@@ -8,9 +8,9 @@ class TestCategoryGrids:
         home_page = setup_all_page["home"]
         tea_page = setup_all_page["tea"]
 
-        home_page.navigate_to("https://itea.co.il/en/")
+        home_page.load()
         home_page.click_tea_menu()
-        tea_page.page.wait_for_timeout(2000)
+        tea_page.page.wait_for_load_state()
 
         # --- SCROLL TO BOTTOM TO LOAD ALL PRODUCTS ---
         # We loop 10 times, scrolling down a bit each time

@@ -3,4 +3,5 @@ playwright==1.49.1
 pytest-playwright==0.6.0
 allure-pytest==2.13.5
 allure-python-commons==2.13.5
-
+python-dotenv==1.0.1    #needed for .env
+requests==2.31.0        #needed for logo hash download
