@@ -1,0 +1,63 @@
+allure serve allure-results
+
+allure generate allure-results --clean -o allure-report
+
+allure open allure-report
+
+
+
+"allure: command not found": You need to install the Allure command-line tool.
+Mac (Homebrew): brew install allureWindows (Scoop): scoop install allure
+Manual: Download the binaries from Maven Central, unzip them, and add the bin folder to your system PATH.
+Blank Report / Loading Issues: Do not try to open the index.html file directly from your file explorer (e.g., double-clicking it).
+Browsers block the necessary AJAX calls for security reasons. You must use allure open or allure serve to view it correctly.
+
+ls / cd navigate to test directory
+
+# Local development (keeps awake)
+pytest tests/test_select_options_product.py -v
+
+# CI/CD (doesn't interfere)
+pytest tests/test_select_options_product.py --no-sleep-prevention -v
+
+
+# Run ALL tests
+pytest tests/
+
+# Run ONE test file
+pytest tests/test_navigation.py
+
+# Run ONE specific test
+pytest tests/test_navigation.py::TestCategoryNavigation::test_submenu_item_hover_color_changes
+
+# Run tests matching a name
+pytest tests/ -k "navigation"
+
+
+# Verbose output (show each test)
+pytest tests/ -v
+
+# Very verbose (show details)
+pytest tests/ -vv
+
+# Show print statements
+pytest tests/ -s
+
+# Quiet (only summary)
+pytest tests/ -q
+
+# Stop after first failure
+pytest tests/ -x
+
+# Stop after 3 failures
+pytest tests/ --maxfail=3
+
+
+# Verbose + show prints + stop on first failure
+pytest tests/ -v -s -x
+
+# Everything + short traceback
+pytest tests/ -v -s --tb=short
+
+# Just see what passes/fails
+pytest tests/ -v --tb=line
