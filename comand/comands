@@ -126,3 +126,51 @@ pytest tests/ -v -s --tb=short
 
 # Just see what passes/fails
 pytest tests/ -v --tb=line
+
+
+***
+
+git checkout refactor   # Switch to refactor
+git checkout main       # Switch back to main
+
+# Delete locally
+git branch -d feature/select-options-tests
+git branch -d work-on-tests
+
+# Delete on GitHub
+git push origin --delete feature/select-options-tests
+git push origin --delete work-on-tests
+
+
+See latest commits:
+git log main --oneline -5
+
+
+Now check if main & refactor are synced:
+git log main..refactor
+
+
+🔄 See the difference:
+git diff main refactor
+
+git checkout main
+git merge refactor
+git push origin main
+
+# See commits on main
+git log main --oneline -5
+
+# See commits on refactor
+git log refactor --oneline -5
+
+# Check if they're the same
+git log main..refactor  # Should be EMPTY if synced
+git log refactor..main  # Should be EMPTY if synced
+
+🔍 Check current branch:
+git branch -a
+
+
+git add .
+git commit -m "🚀 Trigger GitHub Actions CI/CD Pipeline"
+git push origin main
