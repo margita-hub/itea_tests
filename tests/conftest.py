@@ -19,8 +19,6 @@ from pages.product_page import ProductPage
 
 logger = logging.getLogger(__name__)
 
-import os
-
 
 @pytest.fixture()
 def setup_playwright(playwright, request):
@@ -148,28 +146,6 @@ def pytest_addoption(parser):
         help="Disable sleep prevention during tests (useful for CI/CD)"
     )
 
-
-def prevent_sleep():
-    #Cross-platform: Keep PC awake during tests
-    try:
-        if sys.platform == "darwin":  # Mac
-            import subprocess
-            subprocess.Popen(["caffeinate", "-i", "-w", str(os.getpid())])
-            print("Mac: Using caffeinate")
-
-        elif sys.platform == "win32":  # Windows
-            import ctypes
-            ES_CONTINUOUS = 0x80000000
-            ES_SYSTEM_REQUIRED = 0x00000001
-            ctypes.windll.kernel32.SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED)
-            print("Windows: Preventing sleep mode")
-
-        else:  # Linux
-            import subprocess
-            subprocess.Popen(["xdotool", "getactivewindow"])
-            print("Linux: Using xdotool")
-    except Exception as e:
-        print(f"Could not enable keep-awake: {e}")
 
 
 def pytest_configure(config):
