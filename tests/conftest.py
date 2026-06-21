@@ -20,15 +20,6 @@ from pages.product_page import ProductPage
 logger = logging.getLogger(__name__)
 
 
-def pytest_addoption(parser):
-    parser.addoption(
-        "--headless",
-        action="store",
-        default="false",
-        help="Run browser headless: true or false",
-    )
-
-
 @pytest.fixture()
 def setup_playwright(playwright, request):
     headless = request.config.getoption("--headless").lower() == "true"
@@ -140,41 +131,18 @@ def pytest_runtest_makereport(item, call):
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--no-sleep-prevention",
-        action="store_true",
-        default=False,
-        help="Disable sleep prevention during tests (useful for CI/CD)"
-    )
-    parser.addoption(
         "--headless",
         action="store",
         default="false",
         help="Run browser headless: true or false",
     )
-    # parser.addoption(
-    #     "--headed",
-    #     action="store_true",
-    #     default=False,
-    #     help="Run browser in headless mode"
-    # )
-    # parser.addoption(
-    #     "--alluredir",
-    #     action="store",
-    #     default="./allure-results",
-    #     help="Directory for Allure reports"
-    # )
-    # parser.addoption(
-    #     "--screenshot",
-    #     action="store",
-    #     default="only-on-failure",
-    #     help="Screenshot mode (only-on-failure or always)"
-    # )
-    # parser.addoption(
-    #     "--video",
-    #     action="store",
-    #     default="retain-on-failure",
-    #     help="Video mode (retain-on-failure or always)"
-    # )
+    parser.addoption(
+        "--no-sleep-prevention",
+        action="store_true",
+        default=False,
+        help="Disable sleep prevention during tests (useful for CI/CD)"
+    )
+
 
 def prevent_sleep():
     #Cross-platform: Keep PC awake during tests
@@ -200,11 +168,13 @@ def prevent_sleep():
 
 
 def pytest_configure(config):
-    #Called at start of pytest session
-    if not config.getoption("--no-sleep-prevention"):
-        sleep_thread = threading.Thread(target=prevent_sleep, daemon=True)
-        sleep_thread.start()
-        print("Sleep prevention enabled")
+    if os.getenv('CI') != 'true':
+        if not config.getoption("--no-sleep-prevention"):
+            sleep_thread = threading.Thread(target=prevent_sleep, daemon=True)
+            sleep_thread.start()
+            print("Local machine - Sleep prevention enabled")
+    else:
+        print(" CI environment - Sleep prevention disabled")
 
 
 
