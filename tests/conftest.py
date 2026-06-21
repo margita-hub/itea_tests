@@ -148,14 +148,7 @@ def pytest_addoption(parser):
 
 
 
-def pytest_configure(config):
-    if os.getenv('CI') != 'true':
-        if not config.getoption("--no-sleep-prevention"):
-            sleep_thread = threading.Thread(target=prevent_sleep, daemon=True)
-            sleep_thread.start()
-            print("Local machine - Sleep prevention enabled")
-    else:
-        print(" CI environment - Sleep prevention disabled")
+
 
 
 
