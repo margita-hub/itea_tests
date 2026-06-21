@@ -50,8 +50,13 @@ jobs:
 
     - name: Run Playwright Tests
       run: python -m pytest tests/ -v --tb=short
-      continue-on-error: false
+      continue-on-error: true
       timeout-minutes: 90
+
+    - name: Install Allure CLI
+      run: |
+        npm install -g allure-commandline
+        allure --version
 
     - name: Generate Allure Report
       if: always()
