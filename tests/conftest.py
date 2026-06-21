@@ -19,10 +19,16 @@ from pages.product_page import ProductPage
 
 logger = logging.getLogger(__name__)
 
+import os
+
 
 @pytest.fixture()
 def setup_playwright(playwright, request):
-    headless = request.config.getoption("--headless").lower() == "true"
+    # Check environment variable first (for CI), then command-line option
+    env_headless = os.getenv('HEADLESS', 'false').lower() == 'true'
+    cli_headless = request.config.getoption("--headless").lower() == "true"
+    headless = env_headless or cli_headless
+
     browser = playwright.chromium.launch(headless=headless)
 
     # handle for tracing -> Starts Playwright Tracing to record a "black box" video/network log of the test. The try/finally block below ensures we only save the heavy .zip file if the test actually fails.
@@ -33,20 +39,19 @@ def setup_playwright(playwright, request):
     log_message(logger, "Browser opened", LogLevel.INFO)
 
     try:
-        yield page                          # tests are unchanged — still get a page
+        yield page  # tests are unchanged — still get a page
     finally:
         failed = getattr(request.node, "rep_call", None) and request.node.rep_call.failed
         if failed:
             test_name = request.node.name.replace("[", "-").replace("]", "")
-            timestamp  = time.strftime("%m%d-%H%M%S")
+            timestamp = time.strftime("%m%d-%H%M%S")
             Path("traces").mkdir(exist_ok=True)
             context.tracing.stop(path=f"traces/trace_{test_name}_{timestamp}.zip")
         else:
-            context.tracing.stop()          # discard cleanly -> stops
+            context.tracing.stop()  # discard cleanly -> stops
 
         log_message(logger, "Browser closing", LogLevel.INFO)
         browser.close()
-
 
 @pytest.fixture()
 def setup_home_page(setup_playwright):
