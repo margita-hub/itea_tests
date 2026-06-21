@@ -1,0 +1,33 @@
+=========================================
+NEW BUG DETECTED
+=========================================
+Date:        2026-06-21_23-10-51
+Test Failed: test_add_options_required_product_to_cart
+Environment: https://itea.co.il/en/
+=========================================
+
+[DESCRIPTION / STEPS]
+No steps provided.
+
+[ACTUAL RESULT / ERROR]
+setup_all_page = {'cart': <pages.cart_page.CartPage object at 0x106ed92e0>, 'coffee': <pages.coffee_page.CoffeePage object at 0x106ed92...e': <pages.home_page.HomePage object at 0x10738b590>, 'login': <pages.login_page.LoginPage object at 0x106e70c20>, ...}
+
+    def test_add_options_required_product_to_cart(setup_all_page):
+        tea  = setup_all_page["tea"]
+        cart = setup_all_page["cart"]
+    
+        tea.load()
+        tea.page.locator(TeaPageLocators.PRODUCT_ITEM).first.wait_for(state="visible")
+        tea.click_select_options_button_for_product(0)
+    
+        cart.load()
+>       assert cart.count_items() == 1
+E       assert 0 == 1
+E        +  where 0 = count_items()
+E        +    where count_items = <pages.cart_page.CartPage object at 0x106ed92e0>.count_items
+
+tests/test_cart.py:62: AssertionError
+
+[ALLURE REPORT]
+Local: allure serve ./allure-results
+=========================================

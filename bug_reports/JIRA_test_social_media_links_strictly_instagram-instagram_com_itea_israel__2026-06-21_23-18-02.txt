@@ -1,0 +1,55 @@
+=========================================
+NEW BUG DETECTED
+=========================================
+Date:        2026-06-21_23-18-02
+Test Failed: test_social_media_links_strictly[instagram-instagram.com/itea.israel]
+Environment: https://itea.co.il/en/
+=========================================
+
+[DESCRIPTION / STEPS]
+No steps provided.
+
+[ACTUAL RESULT / ERROR]
+setup_all_page = {'cart': <pages.cart_page.CartPage object at 0x10747c740>, 'coffee': <pages.coffee_page.CoffeePage object at 0x10747ff...e': <pages.home_page.HomePage object at 0x107528b30>, 'login': <pages.login_page.LoginPage object at 0x107529b50>, ...}
+social_network = 'instagram', expected_url = 'instagram.com/itea.israel'
+
+    @pytest.mark.parametrize("social_network, expected_url", [
+        ("instagram", "instagram.com/itea.israel"),
+        ("youtube", "youtube.com/user/IteaIsrael"),
+        ("facebook", "facebook.com/itea.israel")
+    ])
+    def test_social_media_links_strictly(setup_all_page, social_network, expected_url):
+        home_page = setup_all_page["home"]
+        context = home_page.page.context
+        home_page.navigate_to("https://itea.co.il/en/")
+        home_page.page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+    
+        social_link = home_page.page.locator(f'#ocean_social-1 ul li a:has(.fa-{social_network})')
+    
+        assert social_link.count() > 0
+        assert social_link.is_visible()
+    
+        with context.expect_page() as new_page_info:
+            social_link.click()
+    
+        new_page = new_page_info.value
+        new_page.wait_for_load_state("domcontentloaded")
+        final_url = new_page.url
+    
+        # STRICT ASSERTION!
+        # If it hits an error page or login wall, this will immediately fail!
+>       assert expected_url in final_url, (
+            f"Broken Social Link! Clicked {social_network}. \n"
+            f"Expected to land on: {expected_url}\n"
+            f"Actually landed on: {final_url}"
+        )
+E       AssertionError: Broken Social Link! Clicked instagram. 
+E         Expected to land on: instagram.com/itea.israel
+E         Actually landed on: chrome-error://chromewebdata/
+E       assert 'instagram.com/itea.israel' in 'chrome-error://chromewebdata/'
+
+tests/test_home_page.py:71: AssertionError
+
+[ALLURE REPORT]
+Local: allure serve ./allure-results
+=========================================

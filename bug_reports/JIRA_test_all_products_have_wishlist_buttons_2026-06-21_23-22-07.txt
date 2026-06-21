@@ -1,0 +1,70 @@
+=========================================
+NEW BUG DETECTED
+=========================================
+Date:        2026-06-21_23-22-07
+Test Failed: test_all_products_have_wishlist_buttons
+Environment: https://itea.co.il/en/
+=========================================
+
+[DESCRIPTION / STEPS]
+No steps provided.
+
+[ACTUAL RESULT / ERROR]
+self = <tests.test_ui_grids.TestCategoryGrids object at 0x106fd6210>
+setup_all_page = {'cart': <pages.cart_page.CartPage object at 0x107476c60>, 'coffee': <pages.coffee_page.CoffeePage object at 0x1074742...e': <pages.home_page.HomePage object at 0x107475f70>, 'login': <pages.login_page.LoginPage object at 0x1074779e0>, ...}
+
+    def test_all_products_have_wishlist_buttons(self, setup_all_page):
+        home_page = setup_all_page["home"]
+        tea_page = setup_all_page["tea"]
+    
+        home_page.click_tea_menu()
+        tea_page.page.wait_for_load_state()
+    
+        # --- SCROLL TO BOTTOM TO LOAD ALL PRODUCTS ---
+        # We loop 10 times, scrolling down a bit each time
+        for _ in range(15):
+            tea_page.page.mouse.wheel(0, 1000)
+            tea_page.page.wait_for_timeout(500)  # Give WooCommerce time to load the images!
+    
+        # Scroll back to the top just to be safe
+        tea_page.page.evaluate("window.scrollTo(0, 0)")
+        tea_page.page.locator(TeaPageLocators.PRODUCT_ITEM).first.wait_for(state="visible")
+    
+    
+        product_list = tea_page.page.locator(TeaPageLocators.PRODUCT_LIST)
+        all_products = product_list.locator(TeaPageLocators.PRODUCT_ITEM)
+    
+        total_products_count = all_products.count()
+        broken_products = []
+    
+        print(f"\n--- FOUND {total_products_count} TOTAL PRODUCTS ---")
+    
+        for i in range(total_products_count):
+            product = all_products.nth(i)
+    
+            # We MUST scroll to the specific product before checking if its heart is visible!
+            product.scroll_into_view_if_needed()
+    
+            title = product.locator(TeaPageLocators.PRODUCT_TITLE).inner_text()
+            heart_btn = product.locator(TeaPageLocators.ADD_TO_WISHLIST_BTN)
+    
+            if heart_btn.count() == 0:
+                broken_products.append(f"{title} (No HTML)")
+            elif not heart_btn.is_visible():
+                broken_products.append(f"{title} (Hidden)")
+    
+>       assert len(broken_products) == 0, (
+            f"UI BUG DETECTED: {len(broken_products)} out of {total_products_count} "
+            f"products are missing the Wishlist Heart button!\n"
+            f"Broken products: {broken_products}"
+        )
+E       AssertionError: UI BUG DETECTED: 12 out of 24 products are missing the Wishlist Heart button!
+E         Broken products: ['Ripe Puerh Mini “Rose” (No HTML)', 'Ripe Puerh Mini Tuo Cha (No HTML)', 'Supreme Raw Xia Guan Tuo Cha (2021) (No HTML)', 'Menghai raw puerh tea cake (100g, 2021) (No HTML)', 'Menghai ripe puerh tea cake (100g, 2018) (No HTML)', 'Ripe Lao Tong Zhi ‘Old Mate’ 7578 (2022) (No HTML)', 'Cheng xiang ripe puer tea cake (357g, 2017) (No HTML)', 'Ripe Puerh Yunnan Qi Zi Bing Cha (2013) (No HTML)', 'Ripe Puerh Lao Tong Zhi ‘Old Mate’ 9988 (2021) (No HTML)', 'Puer in tangerine (No HTML)', 'Yunnan (No HTML)', 'Pressed Yunnan Dian Hong (No HTML)']
+E       assert 12 == 0
+E        +  where 12 = len(['Ripe Puerh Mini “Rose” (No HTML)', 'Ripe Puerh Mini Tuo Cha (No HTML)', 'Supreme Raw Xia Guan Tuo Cha (2021) (No HTML)', 'Menghai raw puerh tea cake (100g, 2021) (No HTML)', 'Menghai ripe puerh tea cake (100g, 2018) (No HTML)', 'Ripe Lao Tong Zhi ‘Old Mate’ 7578 (2022) (No HTML)', ...])
+
+tests/test_ui_grids.py:47: AssertionError
+
+[ALLURE REPORT]
+Local: allure serve ./allure-results
+=========================================

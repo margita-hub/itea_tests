@@ -1,0 +1,65 @@
+=========================================
+NEW BUG DETECTED
+=========================================
+Date:        2026-06-21_23-11-08
+Test Failed: test_update_cart_item_quantity
+Environment: https://itea.co.il/en/
+=========================================
+
+[DESCRIPTION / STEPS]
+No steps provided.
+
+[ACTUAL RESULT / ERROR]
+setup_all_page = {'cart': <pages.cart_page.CartPage object at 0x1072c0f50>, 'coffee': <pages.coffee_page.CoffeePage object at 0x1072c20...e': <pages.home_page.HomePage object at 0x1072c0ce0>, 'login': <pages.login_page.LoginPage object at 0x1073a43e0>, ...}
+
+    def test_update_cart_item_quantity(setup_all_page):
+        tea = setup_all_page["tea"]
+        cart = setup_all_page["cart"]
+    
+        tea.load()
+        tea.add_simple_product_by_index(0)
+    
+        cart.load()
+        assert cart.count_items() == 1
+    
+        # Update quantity to 3
+>       cart.update_item_quantity(0, 3)
+
+tests/test_cart.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pages/cart_page.py:47: in update_item_quantity
+    qty_input.wait_for(state="visible", timeout=5000)
+.venv/lib/python3.12/site-packages/playwright/sync_api/_generated.py:17843: in wait_for
+    self._sync(self._impl_obj.wait_for(timeout=timeout, state=state))
+.venv/lib/python3.12/site-packages/playwright/_impl/_locator.py:679: in wait_for
+    await self._frame.wait_for_selector(
+.venv/lib/python3.12/site-packages/playwright/_impl/_frame.py:323: in wait_for_selector
+    await self._channel.send("waitForSelector", locals_to_params(locals()))
+.venv/lib/python3.12/site-packages/playwright/_impl/_connection.py:61: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x106f1e2d0>, cb = <function Channel.send.<locals>.<lambda> at 0x107183240>, is_internal = False
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(task, "__pw_stack__", inspect.stack())
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.wait_for: Timeout 5000ms exceeded.
+E           Call log:
+E             - waiting for locator("input[name=\"quantity\"]").first to be visible
+
+.venv/lib/python3.12/site-packages/playwright/_impl/_connection.py:528: TimeoutError
+
+[ALLURE REPORT]
+Local: allure serve ./allure-results
+=========================================
