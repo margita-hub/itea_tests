@@ -128,6 +128,12 @@ pytest tests/ -v -s --tb=short
 pytest tests/ -v --tb=line
 
 
+# Test in headed mode (local)
+python -m pytest tests/ -v --headed
+
+# Test in headless mode (like CI)
+HEADLESS=true python -m pytest tests/ -v
+
 ***
 
 git checkout refactor   # Switch to refactor
@@ -174,3 +180,7 @@ git branch -a
 git add .
 git commit -m "🚀 Trigger GitHub Actions CI/CD Pipeline"
 git push origin main
+
+# 1. Clone the repo
+git clone https://github.com/margita-hub/itea_tests.git
+
