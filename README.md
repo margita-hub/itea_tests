@@ -1,69 +1,71 @@
 # iTea Test Automation Framework
 
-A comprehensive, robust, and scalable UI test automation framework built for the [iTea (itea.co.il)](https://itea.co.il) e-commerce platform.
+A comprehensive UI test automation framework for [iTea](https://itea.co.il) e-commerce platform.
 
 ## 🚀 Features
-- **Modern Tech Stack**: Python, Playwright, Pytest.
-- **Design Pattern**: Page Object Model (POM) for maximum reusability and clean architecture.
-- **Reporting**: Integrated with **Allure Reports** for rich, interactive visual test reports.
-- **Automated Bug Reporting**: Automatically generates Jira-style `.txt` bug reports on test failures.
-- **Email Notifications**: Triggers an SMTP email alert instantly when a critical bug is found.
-- **Complex UI Handling**: Advanced logic for lazy-loaded product grids, multi-level hover dropdowns, and dynamic locators.
-- **Mathematical Validations**: Dynamically calculates and verifies "Free Shipping" thresholds based on floating-point cart math.
-- **Smart Discount Logic**: Programmatically identifies products on sale, calculates discount percentages, and builds a cart conditionally.
+- **Modern Tech Stack**: Python, Playwright, Pytest
+- **Design Pattern**: Page Object Model (POM)
+- **Reporting**: Allure Reports - interactive visual test reports
+- **Automated Bug Reporting**: Generates bug reports on test failures
+- **Email Notifications**: SMTP email alert on critical failures
+- **CI/CD**: GitHub Actions with automatic Allure report publishing
 
 ## 🛠 Prerequisites
 - Python 3.10+
-- Node.js (for Allure Command Line - optional but recommended)
-- `pip` package manager
+- Node.js (for Allure CLI)
+- Allure CLI: `brew install allure` (Mac) / `scoop install allure` (Windows)
 
-## 📦 Installation
+## 📦 Quick Start
 
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd itea_tests
-   ```
-
-2. **Install Python dependencies:**
-   ```bash
-   pip install pytest playwright pytest-playwright allure-pytest
-   ```
-
-3. **Install Playwright Browsers:**
-   ```bash
-   playwright install chromium
-   ```
-
-4. **Environment Setup (.env):**
-   Create a `.env` file in the root directory for automated email notifications:
-   ```env
-   SENDER_EMAIL=your_email@gmail.com
-   SENDER_PASSWORD=your_app_password
-   RECEIVER_EMAIL=receiver_email@gmail.com
-   ```
-
-## 🏃‍♂️ Running Tests
-
-**Run all tests:**
+**1. Clone:**
 ```bash
-pytest -v
+git clone https://github.com/margita-hub/itea_tests.git
+cd itea_tests
 ```
 
-**Run specific test categories:**
+**2. Install everything:**
 ```bash
-pytest tests/test_login.py -v
-pytest tests/test_filtering_and_sorting.py -v
+pip install -r requirements.txt
+playwright install chromium
 ```
 
-**Generate and view Allure Report:**
+**3. Run tests + generate report:**
 ```bash
-pytest --alluredir=allure-results
+pytest
 allure serve allure-results
-
 ```
+
+That's it! 🎉
+
+## 🏃 Running Specific Tests
+
+```bash
+# All tests
+pytest
+
+# Specific category
+pytest tests/test_login.py -v
+pytest tests/test_cart.py -v
+pytest tests/test_select_options_product.py -v
+```
+
+## 📊 Allure Report
+
+```bash
+# Run tests (auto-generates allure-results/)
+pytest
+
+# View interactive report
+allure serve allure-results
+```
+
+> ⚠️ Must run `pytest` first before `allure serve`!
+
+## 🌐 Live CI Report
+👉 https://margita-hub.github.io/itea_tests/
 
 ## 📁 Project Structure
+
 ```text
 itea_tests/
 ├── pages/                      # Page Object Model classes
@@ -117,3 +119,19 @@ When a test fails, an email alert is sent automatically.
 
 > To generate a Gmail App Password:
 > Google Account → Security → 2-Step Verification → App Passwords
+
+
+## 🤖 CI/CD
+
+[![Tests](https://github.com/margita-hub/itea_tests/actions/workflows/playwright-tests.yml/badge.svg)](https://github.com/margita-hub/itea_tests/actions)
+
+Tests run automatically on every push.
+
+### 🍴 Forking This Project
+1. Fork the repository
+2. Enable GitHub Pages: Settings → Pages → gh-pages branch
+3. Add secrets (optional - for email notifications):
+   - `EMAIL_USER` - Gmail address
+   - `EMAIL_PASS` - Gmail app password
+   - `EMAIL_TO` - Recipient email(s)
+4. Push code → CI runs automatically!
