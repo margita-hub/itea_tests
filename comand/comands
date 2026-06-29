@@ -14,6 +14,11 @@ Browsers block the necessary AJAX calls for security reasons. You must use allur
 
 ls / cd navigate to test directory
 
+# Quick run - skip slow tests:
+pytest -m "not slow"
+
+# Full run - include slow tests:
+pytest
 
 # ✅ Authentication & Login
 pytest tests/test_login.py -v
@@ -183,4 +188,18 @@ git push origin main
 
 # 1. Clone the repo
 git clone https://github.com/margita-hub/itea_tests.git
+
+git cherry-pick 48b3d5f  # copy that specific commit
+git push origin main      # push to GitHub
+
+git merge working-on-changing-to-have-one-session-during-tests
+git push origin main
+
+git checkout <branch-name>  = just MOVE to that branch
+
+# Move between branches:
+git switch main
+
+# Create new branch:
+git switch -c new-branch-name
 

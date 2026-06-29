@@ -2,7 +2,7 @@ from playwright.sync_api import Page
 from playwright.sync_api import expect
 from config.config import CART_URL
 from pages.base_page import BasePage
-
+from pages.locators import CartPageLocators
 
 class CartPage(BasePage):
     def __init__(self, page: Page):
@@ -41,12 +41,19 @@ class CartPage(BasePage):
         return self.page.get_by_role("heading", name="Cart totals").is_visible()
 
     def update_item_quantity(self, item_index: int, quantity: int):
-
-        qty_inputs = self.page.locator('input[name="quantity"]')
-        qty_input = qty_inputs.nth(item_index)
+        qty_input = self.page.locator(CartPageLocators.QUANTITY_INPUT).nth(item_index)
         qty_input.wait_for(state="visible", timeout=5000)
+        qty_input.click(click_count=3)
         qty_input.fill(str(quantity))
 
+        # Trigger change event to enable Update cart button
+        qty_input.dispatch_event("change")
+        qty_input.press("Tab")  # ← triggers WooCommerce to enable button
+
+        # Now button should be visible
+        update_btn = self.page.locator(CartPageLocators.UPDATE_CART_BTN)
+        update_btn.wait_for(state="visible", timeout=5000)
+        update_btn.click()
         self.page.wait_for_load_state("networkidle")
 
     def get_item_subtotal(self, item_index: int) -> float:
@@ -54,3 +61,15 @@ class CartPage(BasePage):
         subtotal = subtotals.nth(item_index)
         subtotal.wait_for(timeout=5000)
         return self.extract_price(subtotal.inner_text())
+
+    def increase_quantity(self, item_index: int):
+        """Click + button to increase quantity."""
+        plus_btns = self.page.locator('a.plus')
+        plus_btns.nth(item_index).click()
+        self.page.wait_for_load_state("networkidle")
+
+    def decrease_quantity(self, item_index: int):
+        """Click - button to decrease quantity."""
+        minus_btns = self.page.locator('a.minus')
+        minus_btns.nth(item_index).click()
+        self.page.wait_for_load_state("networkidle")

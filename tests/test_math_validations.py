@@ -3,7 +3,7 @@ import pytest
 from pages.locators import TeaPageLocators
 from utils.math_helpers import calculate_qty_for_free_shipping
 
-
+pytestmark = pytest.mark.math
 class TestCartMath:
 
     def test_free_shipping_calculator(self, setup_all_page):

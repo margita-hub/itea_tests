@@ -2,6 +2,7 @@ import pytest
 import re
 from pages.locators import TeaPageLocators
 
+pytestmark = pytest.mark.filtering
 class TestFilteringAndSorting:
 
     @pytest.mark.parametrize("top_menu, sub_menu, item, expected_url, expected_h1", [
@@ -11,12 +12,11 @@ class TestFilteringAndSorting:
         pytest.param("Choose tea", "Time for Tea", "afternoon & evening tea", "time/evening", "evening", id="Time-evening"),
         pytest.param("Choose tea", "Tea & Health", "digestive health", "digestive-health", "digestive health", id="Health-digestive"),
     ])
-    def test_advanced_dropdown_navigation(self, setup_all_page, top_menu, sub_menu, item, expected_url, expected_h1):
+    def test_advanced_dropdown_navigation(self, setup_all_page_session, top_menu, sub_menu, item, expected_url, expected_h1):
         #Test the multi-level hover menus dynamically for any combination
-        home_page = setup_all_page["home"]
+        home_page = setup_all_page_session["home"]
         page = home_page.page
-        
-        home_page.navigate_to("https://itea.co.il/en/")
+        home_page.click_tea_menu()
         page.wait_for_load_state("domcontentloaded")
         
         # Hover over Top Menu
@@ -49,13 +49,12 @@ class TestFilteringAndSorting:
         ("price", False),        # Sort by price: low to high
         ("price-desc", True)     # Sort by price: high to low
     ])
-    def test_sort_by_price(self, setup_all_page, sort_value, reverse_order):
+    def test_sort_by_price(self, setup_all_page_session, sort_value, reverse_order):
         """Test that sorting products by price works correctly in both directions"""
-        home_page = setup_all_page["home"]
+        home_page = setup_all_page_session["home"]
         page = home_page.page
-        
-        # Go to the main Tea page
-        home_page.navigate_to("https://itea.co.il/en/tea/")
+        home_page.click_tea_menu()
+
         page.wait_for_load_state("domcontentloaded")
         
         # Select sort option from the dropdown
