@@ -46,12 +46,13 @@ def cleanup_after_test(request):
 
     if any(m in markers for m in data_changing):
         try:
-            cart = setup_all_page_session["cart"]
+            session = request.getfixturevalue('setup_all_page_session')
+            cart = session["cart"]
             cart.load()
             if cart.count_items() > 0:  # ← only clean if needed!
                 cart.remove_all_items()
 
-            wishlist = setup_all_page_session["wishlist"]
+            wishlist = session["wishlist"]
             wishlist.load()
             if not wishlist.is_empty():  # ← only clean if needed!
                 wishlist.remove_all_items()

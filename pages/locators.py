@@ -29,7 +29,6 @@ class LoginPageLocators:
     ERROR_MESSAGE = 'xpath=//*[@id="error_message"]'
 
 class TeaPageLocators:
-    # unordered list off all tea
     PRODUCT_LIST = '//*[@id="content"]/article/ul'
     PRODUCT_ITEM = 'li.product'
     PRODUCT_TITLE = 'li.title.desktop a'
@@ -41,6 +40,11 @@ class TeaPageLocators:
     PAGE_TITLE_H1 = 'h1.page-header-title'
     SIMPLE_PRODUCT_ITEM = 'li.product:has(a.product_type_simple)'
     SELECT_OPTIONS_PRODUCT_ITEM = 'li.product:has(a.product_type_variable, a.product_type_bundle)'
+    CART_COUNT = 'span.count-item'
+    SALE_BADGE = 'span.onsale'
+    WISHLIST_HEART_FILLED = '#yith-wcwl-icon-heart'
+    WISHLIST_HEART_OUTLINE = '#yith-wcwl-icon-heart-outline'
+    AJAX_OVERLAY = '.blockUI.blockOverlay'
 
 class TeawarePageLocators:
     PAGE_TITLE = 'h1.page-header-title'
@@ -54,3 +58,14 @@ class CartPageLocators:
     CART_ITEM = 'tr.wc_cart_item'
     EMPTY_CART_MSG = 'p.cart-empty'
     CART_TOTALS = 'h2.widget_shopping_cart_total'
+
+class ProductPageLocators:
+    OPTION_DROPDOWN = 'select[name*="bundle_attribute"]'
+    ERROR_MESSAGE = 'span.msg-content'
+    QUANTITY_INPUT = 'input[name="quantity"]'
+    WISHLIST_BTN = 'span.yith-wcwl-add-to-wishlist-button__label'
+    WISHLIST_HEART_OUTLINE = '#yith-wcwl-icon-heart-outline'
+    VIEW_CART_LINK = 'a.added_to_cart.wc-forward'
+    CLEAR_OPTIONS_BTN = 'a.reset_variations'
+    ADD_TO_CART_BTN = 'button[name="add-to-cart"]'
+    TOAST_MESSAGE = '.woocommerce-message'

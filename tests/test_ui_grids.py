@@ -1,31 +1,29 @@
 import pytest
+import pytest_check as check
 from pages.locators import TeaPageLocators
 
 pytestmark = pytest.mark.ui
+
+
 class TestCategoryGrids:
 
-    #@pytest.mark.xfail(reason="Known Bug: Missing wishlist buttons")
     def test_all_products_have_wishlist_buttons(self, setup_all_page_session):
+        """All tea products should have wishlist heart buttons."""
         home_page = setup_all_page_session["home"]
         tea_page = setup_all_page_session["tea"]
 
         home_page.click_tea_menu()
         tea_page.page.wait_for_load_state()
 
-        # --- SCROLL TO BOTTOM TO LOAD ALL PRODUCTS ---
-        # We loop 10 times, scrolling down a bit each time
         for _ in range(15):
             tea_page.page.mouse.wheel(0, 1000)
-            tea_page.page.wait_for_timeout(500)  # Give WooCommerce time to load the images!
+            tea_page.page.wait_for_timeout(500)
 
-        # Scroll back to the top just to be safe
         tea_page.page.evaluate("window.scrollTo(0, 0)")
         tea_page.page.locator(TeaPageLocators.PRODUCT_ITEM).first.wait_for(state="visible")
 
-
         product_list = tea_page.page.locator(TeaPageLocators.PRODUCT_LIST)
         all_products = product_list.locator(TeaPageLocators.PRODUCT_ITEM)
-
         total_products_count = all_products.count()
         broken_products = []
 
@@ -33,29 +31,23 @@ class TestCategoryGrids:
 
         for i in range(total_products_count):
             product = all_products.nth(i)
-
-            # We MUST scroll to the specific product before checking if its heart is visible!
             product.scroll_into_view_if_needed()
-
             title = product.locator(TeaPageLocators.PRODUCT_TITLE).inner_text()
             heart_btn = product.locator(TeaPageLocators.ADD_TO_WISHLIST_BTN)
-
             if heart_btn.count() == 0:
                 broken_products.append(f"{title} (No HTML)")
             elif not heart_btn.is_visible():
                 broken_products.append(f"{title} (Hidden)")
 
-        assert len(broken_products) == 0, (
-            f"UI BUG DETECTED: {len(broken_products)} out of {total_products_count} "
-            f"products are missing the Wishlist Heart button!\n"
-            f"Broken products: {broken_products}"
-        )
+        check.equal(len(broken_products), 0,
+            f"UI BUG: {len(broken_products)}/{total_products_count} products missing wishlist button!\n{broken_products}")
 
 
-    #@pytest.mark.xfail(reason="Known Bug: Missing wishlist buttons on Teaware page too")
     def test_teaware_products_have_wishlist_buttons(self, setup_all_page_session):
+        """All teaware products should have wishlist heart buttons."""
         home_page = setup_all_page_session["home"]
-        teaware_page = setup_all_page_session["teaware"]  # Make sure this matches your conftest!
+        teaware_page = setup_all_page_session["teaware"]
+
         home_page.click_teaware_menu()
         teaware_page.page.wait_for_timeout(2000)
 
@@ -63,7 +55,6 @@ class TestCategoryGrids:
             teaware_page.page.mouse.wheel(0, 1000)
             teaware_page.page.wait_for_timeout(500)
 
-        # Note: We can reuse TeaPageLocators here because the WooCommerce grid HTML is identical across all categories!
         product_list = teaware_page.page.locator(TeaPageLocators.PRODUCT_LIST)
         all_products = product_list.locator(TeaPageLocators.PRODUCT_ITEM)
         total_products_count = all_products.count()
@@ -72,14 +63,12 @@ class TestCategoryGrids:
         for i in range(total_products_count):
             product = all_products.nth(i)
             product.scroll_into_view_if_needed()
-
             title = product.locator(TeaPageLocators.PRODUCT_TITLE).inner_text()
             heart_btn = product.locator(TeaPageLocators.ADD_TO_WISHLIST_BTN)
-
             if heart_btn.count() == 0:
                 broken_products.append(f"{title} (No HTML)")
             elif not heart_btn.is_visible():
                 broken_products.append(f"{title} (Hidden)")
 
-        assert len(
-            broken_products) == 0, f"UI BUG DETECTED: {len(broken_products)} missing wishlist buttons! Broken: {broken_products}"
+        check.equal(len(broken_products), 0,
+            f"UI BUG: {len(broken_products)} missing wishlist buttons! {broken_products}")
