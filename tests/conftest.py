@@ -1,12 +1,7 @@
 import logging
 import pytest
-import time
-import threading
-import sys
 import os
-from pathlib import Path
 from utils.logger import log_message, take_screenshot, LogLevel
-from config.config import URL_EN, LOGIN_URL
 from pages.cart_page import CartPage
 from pages.coffee_page import CoffeePage
 from pages.home_page import HomePage
@@ -20,80 +15,98 @@ from pages.product_page import ProductPage
 logger = logging.getLogger(__name__)
 
 
-@pytest.fixture()
-def setup_playwright(playwright, request):
-    # Check environment variable first (for CI), then command-line option
+
+
+@pytest.fixture(scope="session")
+def browser_instance(request):
+    from playwright.sync_api import sync_playwright
+
     env_headless = os.getenv('HEADLESS', 'false').lower() == 'true'
     cli_headless = request.config.getoption("--headless").lower() == "true"
     headless = env_headless or cli_headless
 
-    browser = playwright.chromium.launch(headless=headless)
-
-    # handle for tracing -> Starts Playwright Tracing to record a "black box" video/network log of the test. The try/finally block below ensures we only save the heavy .zip file if the test actually fails.
-    context = browser.new_context(viewport={"width": 1920, "height": 1080})
-    context.tracing.start(screenshots=True, snapshots=True, sources=True)
-    page = context.new_page()
-
-    log_message(logger, "Browser opened", LogLevel.INFO)
-
-    try:
-        yield page  # tests are unchanged — still get a page
-    finally:
-        failed = getattr(request.node, "rep_call", None) and request.node.rep_call.failed
-        if failed:
-            test_name = request.node.name.replace("[", "-").replace("]", "")
-            timestamp = time.strftime("%m%d-%H%M%S")
-            Path("traces").mkdir(exist_ok=True)
-            context.tracing.stop(path=f"traces/trace_{test_name}_{timestamp}.zip")
-        else:
-            context.tracing.stop()  # discard cleanly -> stops
-
-        log_message(logger, "Browser closing", LogLevel.INFO)
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=headless)
+        yield browser
         browser.close()
 
-@pytest.fixture()
-def setup_home_page(setup_playwright):
-    home_page = HomePage(setup_playwright)
-    home_page.load()
-    log_message(logger, f"Navigated to {URL_EN}", LogLevel.INFO)
-    yield home_page
-
 
 @pytest.fixture()
-def setup_login_page(setup_playwright):
-    login_page = LoginPage(setup_playwright)
-    login_page.load()
-    log_message(logger, f"Navigated to {LOGIN_URL}", LogLevel.INFO)
-    yield login_page
+def setup_all_page(setup_all_page_session):
+    """Uses one session browser ."""
+    return setup_all_page_session
 
 
-@pytest.fixture()
-def setup_all_page(setup_playwright):
-    home = HomePage(setup_playwright)
+@pytest.fixture(autouse=True)
+def cleanup_after_test(request):
+    yield
+
+    data_changing = ['cart', 'e2e', 'select_options', 'math']
+    markers = [m.name for m in request.node.iter_markers()]
+
+    if any(m in markers for m in data_changing):
+        try:
+            cart = setup_all_page_session["cart"]
+            cart.load()
+            if cart.count_items() > 0:  # ← only clean if needed!
+                cart.remove_all_items()
+
+            wishlist = setup_all_page_session["wishlist"]
+            wishlist.load()
+            if not wishlist.is_empty():  # ← only clean if needed!
+                wishlist.remove_all_items()
+        except Exception as e:
+            log_message(logger, f"Cleanup failed: {e}", LogLevel.WARNING)
+
+
+@pytest.fixture(scope="session")
+def setup_all_page_session(browser_instance):
+    """ONE shared page for read-only tests."""
+    context = browser_instance.new_context(viewport={"width": 1920, "height": 1080})
+    page = context.new_page()
+    home = HomePage(page)
     home.load()
-    log_message(logger, f"Navigated to {URL_EN}", LogLevel.INFO)
     home.close_cart_bounce_popup()
 
-    return {
-        "page":     setup_playwright,
+    yield {
+        "page":     page,
         "home":     home,
-        "login":    LoginPage(setup_playwright),
-        "tea":      TeaPage(setup_playwright),
-        "teaware":  TeawarePage(setup_playwright),
-        "cart":     CartPage(setup_playwright),
-        "coffee":   CoffeePage(setup_playwright),
-        "wishlist": WishlistPage(setup_playwright),
-        "product": ProductPage(setup_playwright),
+        "login":    LoginPage(page),
+        "tea":      TeaPage(page),
+        "teaware":  TeawarePage(page),
+        "cart":     CartPage(page),
+        "coffee":   CoffeePage(page),
+        "wishlist": WishlistPage(page),
+        "product":  ProductPage(page),
     }
+
+    context.close()
+
+
+
+@pytest.fixture(autouse=True)
+def scroll_to_top(request):
+    yield
+    if 'setup_all_page_session' in request.fixturenames:
+        try:
+            session = request.getfixturevalue('setup_all_page_session')
+            page = session["page"]
+            page.evaluate("window.scrollTo(0, 0)")
+            page.wait_for_timeout(300)
+        except Exception:
+            pass
+
+
 
 
 def _get_page_from_item(item):
     funcargs = getattr(item, "funcargs", {})
     if funcargs.get("setup_playwright") is not None:
         return funcargs["setup_playwright"]
-    all_pages = funcargs.get("setup_all_page")
-    if isinstance(all_pages, dict) and all_pages.get("page") is not None:
-        return all_pages["page"]
+    for fixture in ("setup_all_page", "setup_all_page_session"):
+        pages = funcargs.get(fixture)
+        if isinstance(pages, dict) and pages.get("page") is not None:
+            return pages["page"]
     for name in ("setup_home_page", "setup_login_page"):
         po = funcargs.get(name)
         if po is not None and hasattr(po, "page"):
@@ -101,34 +114,27 @@ def _get_page_from_item(item):
     return None
 
 
-# this is decorator @pytest.hookimpl and there is function that on test failure pytest stops the test and prints an error in console. to avoid adding try/expect in each test, the Hook is global and its watches all test cases.
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
     rep = outcome.get_result()
-
     setattr(item, f"rep_{rep.when}", rep)
 
-    # Failure log + screenshot only
     if rep.when == "call" and rep.failed:
         test_name = item.name
         clean_error_message = str(call.excinfo.value) if call.excinfo else "Unknown error"
-
         log_message(logger, f"TEST FAILED: {test_name} -> {clean_error_message}", LogLevel.ERROR)
-
         page = _get_page_from_item(item)
         if page is not None:
             take_screenshot(page, f"FAILURE_{test_name}")
 
-    # trace zip exists now, safe to email
     if rep.when == "teardown":
         call_rep = getattr(item, "rep_call", None)
         if call_rep and call_rep.failed:
-            test_name           = item.name
+            test_name = item.name
             clean_error_message = str(call_rep.longrepr) if call_rep.longrepr else "Unknown error"
-            test_docstring      = item.obj.__doc__ or "No steps provided."
-            trace_path          = getattr(item, "_trace_path", None)
-
+            test_docstring = item.obj.__doc__ or "No steps provided."
+            trace_path = getattr(item, "_trace_path", None)
             BugReporter.report_failed_test(test_name, clean_error_message, test_docstring, trace_path)
 
 
@@ -139,16 +145,3 @@ def pytest_addoption(parser):
         default="false",
         help="Run browser headless: true or false",
     )
-    parser.addoption(
-        "--no-sleep-prevention",
-        action="store_true",
-        default=False,
-        help="Disable sleep prevention during tests (useful for CI/CD)"
-    )
-
-
-
-
-
-
-

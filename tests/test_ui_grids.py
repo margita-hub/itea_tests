@@ -1,12 +1,13 @@
 import pytest
 from pages.locators import TeaPageLocators
 
+pytestmark = pytest.mark.ui
 class TestCategoryGrids:
 
     #@pytest.mark.xfail(reason="Known Bug: Missing wishlist buttons")
-    def test_all_products_have_wishlist_buttons(self, setup_all_page):
-        home_page = setup_all_page["home"]
-        tea_page = setup_all_page["tea"]
+    def test_all_products_have_wishlist_buttons(self, setup_all_page_session):
+        home_page = setup_all_page_session["home"]
+        tea_page = setup_all_page_session["tea"]
 
         home_page.click_tea_menu()
         tea_page.page.wait_for_load_state()
@@ -52,17 +53,12 @@ class TestCategoryGrids:
 
 
     #@pytest.mark.xfail(reason="Known Bug: Missing wishlist buttons on Teaware page too")
-    def test_teaware_products_have_wishlist_buttons(self, setup_all_page):
-        home_page = setup_all_page["home"]
-        teaware_page = setup_all_page["teaware"]  # Make sure this matches your conftest!
-
-        home_page.navigate_to("https://itea.co.il/en/")
-
-        # We need to add a click_teaware_menu() method to home_page!
-        home_page.navigate_to("https://itea.co.il/en/teaware/")
+    def test_teaware_products_have_wishlist_buttons(self, setup_all_page_session):
+        home_page = setup_all_page_session["home"]
+        teaware_page = setup_all_page_session["teaware"]  # Make sure this matches your conftest!
+        home_page.click_teaware_menu()
         teaware_page.page.wait_for_timeout(2000)
 
-        # Scroll to load all products
         for _ in range(15):
             teaware_page.page.mouse.wheel(0, 1000)
             teaware_page.page.wait_for_timeout(500)

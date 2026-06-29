@@ -1,15 +1,16 @@
 import pytest
 from utils.data_reader import load_products_from_db
 
+
 EXPECTED_PRODUCTS = load_products_from_db()
 
-
+pytestmark = pytest.mark.database
 class TestDatabaseValidation:
 
     @pytest.mark.parametrize("tea_data", EXPECTED_PRODUCTS)
-    def test_verify_tea_prices_from_json(self, setup_all_page, tea_data):
+    def test_verify_tea_prices_from_json(self, setup_all_page_session, tea_data):
         #Reads expected products from db.json and verifies they exist on the live website with the correct price
-        tea_page = setup_all_page["tea"]
+        tea_page = setup_all_page_session["tea"]
 
         expected_name = tea_data["name"]
         expected_price = tea_data["price"]

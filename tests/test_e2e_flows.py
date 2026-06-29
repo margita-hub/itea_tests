@@ -2,8 +2,11 @@ from Services.shopping_service import ShoppingService
 from pages.cart_page import CartPage
 from pages.locators import TeaPageLocators
 from utils.math_helpers import calculate_qty_for_free_shipping
+import pytest
 
 
+
+pytestmark = pytest.mark.e2e
 def test_add_multiple_items_to_cart(setup_all_page):
     home_page = setup_all_page["home"]
     tea_page = setup_all_page["tea"]
@@ -61,6 +64,7 @@ def test_add_multiple_items_to_cart(setup_all_page):
         assert expected_tea in items_in_cart, f"Missing {expected_tea} in cart! Cart has: {items_in_cart}"
 
 
+@pytest.mark.slow
 def test_smart_discount_shopping(setup_all_page):
     home = setup_all_page["home"]
     tea = setup_all_page["tea"]

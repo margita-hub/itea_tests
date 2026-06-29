@@ -14,19 +14,13 @@ class HomePageLocators:
     WISHLIST_VISIBLE = '#site-header-inner a[href*="wishlist"]:visible'
     CART_ICON_VISIBLE = '#site-header-inner a.wcmenucart-shortcode:visible'
     #menu
-
     TEA_MENU = '#site-header-inner a[href="https://itea.co.il/en/tea/"]'
     TEAWARE_MENU = '#menu-item-11530 > a'
     COFFEE_MENU = '#site-header-inner a[href="https://itea.co.il/en/coffee/"]'
-
     #drodown
     TEATYPES = '//*[@id="menu-item-6524"]'
     MATCHA_MENU = '//*[@id="menu-item-11584"]/a'
     SALE_MENU = '//*[@id="menu-item-6565"]/a'
-
-
-
-
 
 class LoginPageLocators:
     USERNAME_FIELD = 'xpath=//*[@id="username"]'
@@ -51,5 +45,12 @@ class TeaPageLocators:
 class TeawarePageLocators:
     PAGE_TITLE = 'h1.page-header-title'
 
-
-
+class CartPageLocators:
+    QUANTITY_INPUT = 'input.qty'
+    UPDATE_CART_BTN = 'button[name="update_cart"]'
+    MINUS_BTN = 'a.minus'
+    PLUS_BTN = 'a.plus'
+    REMOVE_ITEM = 'a.remove'
+    CART_ITEM = 'tr.wc_cart_item'
+    EMPTY_CART_MSG = 'p.cart-empty'
+    CART_TOTALS = 'h2.widget_shopping_cart_total'

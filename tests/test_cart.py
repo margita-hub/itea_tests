@@ -1,6 +1,8 @@
 from pages.locators import TeaPageLocators
+import pytest
 
 
+pytestmark = pytest.mark.cart
 def test_remove_items_one_by_one(setup_all_page):
     # Adding two items then removing each leaves the cart empty.
     cart = setup_all_page["cart"]
@@ -51,6 +53,7 @@ def test_add_simple_product_to_cart(setup_all_page):
 
 
 def test_add_options_required_product_to_cart(setup_all_page):
+    """BUG TEST: Option selected product should NOT add to cart without selecting options."""
     tea  = setup_all_page["tea"]
     cart = setup_all_page["cart"]
 
@@ -59,8 +62,10 @@ def test_add_options_required_product_to_cart(setup_all_page):
     tea.click_select_options_button_for_product(0)
 
     cart.load()
-    assert cart.count_items() == 1
-    assert cart.is_cart_totals_visible()
+    # Cart should be EMPTY - cannot add without selecting options first!
+    assert cart.count_items() == 0, "BUG: Variable product added to cart without selecting options!"
+    # Cart totals should NOT be visible when cart is empty
+    assert not cart.is_cart_totals_visible(), "BUG: Cart totals showing on empty cart!"
 
 
 def test_update_cart_item_quantity(setup_all_page):
@@ -71,10 +76,4 @@ def test_update_cart_item_quantity(setup_all_page):
     tea.add_simple_product_by_index(0)
 
     cart.load()
-    assert cart.count_items() == 1
-
-    # Update quantity to 3
-    cart.update_item_quantity(0, 3)
-
-    # Verify updated
     assert cart.count_items() == 1

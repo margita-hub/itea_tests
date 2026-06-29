@@ -4,7 +4,7 @@ import pytest
 from config.config import VALID_CREDENTIALS
 
 import pytest
-
+pytestmark = pytest.mark.login
 @pytest.mark.skip(reason="Cloudflare Captcha currently blocking login flow")
 class TestLogin:
 # open browser and load the login page

@@ -1,6 +1,6 @@
 import pytest
 
-
+pytestmark = pytest.mark.navigation
 class TestCategoryNavigation:
 
     @pytest.mark.parametrize("menu_locator_name, expected_h1_title", [
@@ -10,9 +10,9 @@ class TestCategoryNavigation:
         pytest.param("SALE_MENU",    "Sale",    id="SALE_MENU-Sale"),
         pytest.param("MATCHA_MENU",  "Matcha",  id="MATCHA_MENU-Matcha"),
     ])
-    def test_navigate_to_categories(self, setup_all_page, menu_locator_name, expected_h1_title):
+    def test_navigate_to_categories(self, setup_all_page_session, menu_locator_name, expected_h1_title):
         #Click each header category and verify it lands on the right page.
-        home_page = setup_all_page["home"]
+        home_page = setup_all_page_session["home"]
         home_page.page.wait_for_load_state("domcontentloaded")
 
         if menu_locator_name == "MATCHA_MENU":
@@ -40,8 +40,8 @@ class TestCategoryNavigation:
 
 
 
-    def test_submenu_item_hover_color_changes(self,setup_all_page):
-        home_page = setup_all_page["home"]
+    def test_submenu_item_hover_color_changes(self,setup_all_page_session):
+        home_page = setup_all_page_session["home"]
         home_page.hover_tea_types_menu()
         home_page.page.wait_for_load_state("domcontentloaded")
 

@@ -2,7 +2,7 @@ import pytest
 from pages.product_page import ProductPage
 from pages.locators import TeaPageLocators
 
-
+pytestmark = pytest.mark.select_options
 #@pytest.mark.skip(reason="Skip test")
 @pytest.mark.parametrize("product_index,option_index,quantity", [
     (0, 1, 1),
